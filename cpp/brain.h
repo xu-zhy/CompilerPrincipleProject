@@ -11,17 +11,17 @@
 namespace nemo {
 
 struct Synapse {
-  uint32_t neuron;
-  float weight;
+  uint32_t neuron;    // 神经元索引
+  float weight;       // 突触权重
 };
 
 struct Area {
   Area(uint32_t index, uint32_t n, uint32_t k) : index(index), n(n), k(k) {}
 
   const uint32_t index;             // 脑区索引
-  const uint32_t n;                 // 神经元数量
-  const uint32_t k;                 // 每个 assembly 的神经元数量
-  uint32_t support = 0;             // 曾经激活的神经元数量
+  const uint32_t n;                 // 脑区的总神经元数量
+  const uint32_t k;                 // 激活的最大神经元数量，n/k 为脑区的 assembly 数量
+  uint32_t support = 0;             // 当前激活的神经元数量
   bool is_fixed = false;            // 是否具有固定数量的激活神经元
   std::vector<uint32_t> activated;  // 激活的神经元索引
 };
@@ -91,14 +91,14 @@ class Brain {
 
   const float p_;                                           // 神经元激活概率
   const float beta_;                                        // 更新权重
-  const float learn_rate_;                                  // 学习率
+  const float learn_rate_;                                  // 学习率：1+beta_
   const float max_weight_;                                  // 最大权重
-  std::vector<Area> areas_;                                 // 脑区集合
-  std::vector<Fiber> fibers_;                               // 纤维束集合
-  std::vector<std::vector<uint32_t>> incoming_fibers_;      // areas_ 的每个脑区的输入纤维束
-  std::vector<std::vector<uint32_t>> outgoing_fibers_;      // areas_ 的每个脑区的输出纤维束
+  std::vector<Area> areas_;                                 // 脑区集合，下标为 Area::index
+  std::vector<Fiber> fibers_;                               // 纤维束集合，下标从 incoming_fibers_ 和 outgoing_fibers_ 中获取
+  std::vector<std::vector<uint32_t>> incoming_fibers_;      // areas_ 的每个脑区的输入纤维束，下标为 Area::index
+  std::vector<std::vector<uint32_t>> outgoing_fibers_;      // areas_ 的每个脑区的输出纤维束，下标为 Area::index
   std::map<std::string, uint32_t> area_by_name_;            // 脑区名称到脑区索引的映射
-  std::vector<std::string> area_name_;                      // areas_ 每个脑区的名称
+  std::vector<std::string> area_name_;                      // areas_ 每个脑区的名称，下标为 Area::index
   uint32_t step_ = 0;                                       // 当前步数
 };
 

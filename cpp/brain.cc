@@ -160,7 +160,7 @@ Area& Brain::AddArea(const std::string& name, uint32_t n, uint32_t k,
 }
 
 /**
- * @brief 添加一个激活的脑区?????????
+ * @brief 添加一个激活的脑区
  * 
  * @param name: 脑区名称
  * @param k: 激活的神经元数量
@@ -336,13 +336,14 @@ void Brain::SimulateOneStep(bool update_plasticity) {
     }
     printf("Step %u%s\n", step_, update_plasticity ? "" : " (readout)");
   }
-  std::vector<std::vector<uint32_t>> new_activated(areas_.size());  // 记录每个脑区新的激活神经元
+  // 记录每个脑区新的激活神经元
+  std::vector<std::vector<uint32_t>> new_activated(areas_.size());  
+  // 遍历每个脑区
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
-    // 考虑每个脑区
     Area& to_area = areas_[area_i];
     uint32_t total_activated = 0;
+    // 遍历该脑区的每个输入 fiber
     for (uint32_t fiber_i : incoming_fibers_[to_area.index]) {
-      // 考虑当前脑区的每个输入 fiber
       const Fiber& fiber = fibers_[fiber_i];
       const uint32_t num_activated = areas_[fiber.from_area].activated.size();
       if (!fiber.is_active || num_activated == 0) continue;
@@ -350,7 +351,6 @@ void Brain::SimulateOneStep(bool update_plasticity) {
         printf("%s%s", total_activated == 0 ? "Projecting " : ",",
                area_name_[fiber.from_area].c_str());
       }
-      // 若起始脑区有激活的神经元且 fiber 激活，则将这些神经元的突触连接到当前脑区
       total_activated += num_activated;
     }
     if (total_activated == 0) {
@@ -360,11 +360,15 @@ void Brain::SimulateOneStep(bool update_plasticity) {
       printf(" into %s\n", area_name_[area_i].c_str());
     }
     if (!to_area.is_fixed) {
-      std::vector<Synapse> activations;
+      // 用于记录每个神经元的突触输入
+      std::vector<Synapse> activations; 
       if (to_area.support > 0) {
+        // 1. 计算已知的激活神经元输入，即论文 SI (synaptic input)
         ComputeKnownActivations(to_area, activations);
+        // 2. 选择前 k 个激活神经元
         SelectTopK(activations, to_area.k);
       }
+      // ????
       if (activations.empty() ||
           activations[to_area.k - 1].weight < total_activated) {
         GenerateNewCandidates(to_area, total_activated, activations);
@@ -375,11 +379,13 @@ void Brain::SimulateOneStep(bool update_plasticity) {
                area_name_[area_i].c_str(), to_area.k,
                activations[to_area.k - 1].weight);
       }
+      // 重新 resize 为 k
       new_activated[area_i].resize(to_area.k);
       const uint32_t K = to_area.support;
       uint32_t num_new = 0;
       uint32_t total_from_activated = 0;
       uint32_t total_from_non_activated = 0;
+      // 将 activations（长度为 k）的神经元下标存入 new_activated[area_i] 中
       for (uint32_t i = 0; i < to_area.k; ++i) {
         const Synapse& s = activations[i];
         if (s.neuron >= K) {
@@ -403,9 +409,11 @@ void Brain::SimulateOneStep(bool update_plasticity) {
       new_activated[area_i] = to_area.activated;
     }
     if (update_plasticity) {
+      // 3. 更新突触权重
       UpdatePlasticity(to_area, new_activated[area_i]);
     }
   }
+  // 更新每个脑区的激活神经元
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
     Area& area = areas_[area_i];
     if (!area.is_fixed) {
@@ -450,17 +458,17 @@ void Brain::Project(const ProjectMap& graph, uint32_t num_steps,
 }
 
 /**
- * @brief 
+ * @brief 计算指定脑区原有激活神经元的激活
  * 
- * @param to_area 
- * @param activations 
+ * @param to_area: 目标脑区
+ * @param activations: 激活神经元集合
  */
 void Brain::ComputeKnownActivations(const Area& to_area,
                                     std::vector<Synapse>& activations) {
   activations.resize(to_area.support);
   for (uint32_t i = 0; i < activations.size(); ++i) {
     activations[i].neuron = i;
-    activations[i].weight = 0;
+    activations[i].weight = 0;  // 这个 weight 就是 SI_i
   }
   for (uint32_t fiber_i : incoming_fibers_[to_area.index]) {
     const Fiber& fiber = fibers_[fiber_i];
@@ -475,6 +483,13 @@ void Brain::ComputeKnownActivations(const Area& to_area,
   }
 }
 
+/**
+ * @brief 生成新的候选神经元。【不明白此函数的用意】
+ * 
+ * @param to_area: 目标脑区
+ * @param total_k: 总激活数
+ * @param activations: 激活神经元集合
+ */
 void Brain::GenerateNewCandidates(const Area& to_area, uint32_t total_k,
                                   std::vector<Synapse>& activations) {
   // Compute the total number of neurons firing into this area.
@@ -518,6 +533,13 @@ void Brain::GenerateNewCandidates(const Area& to_area, uint32_t total_k,
   }
 }
 
+/**
+ * @brief 为新的神经元连接突触
+ * 
+ * @param area: 目标脑区
+ * @param num_synapses_from_activated: 从激活神经元连接的突触数量 
+ * @param total_synapses_from_non_activated: 从未激活神经元连接的突触总数 
+ */
 void Brain::ConnectNewNeuron(Area& area,
                              uint32_t num_synapses_from_activated,
                              uint32_t& total_synapses_from_non_activated) {
@@ -527,10 +549,16 @@ void Brain::ConnectNewNeuron(Area& area,
   ++area.support;
 }
 
+/**
+ * @brief 从到达该脑区的其它脑区中选择激活神经元连接到该脑区的新神经元
+ * 
+ * @param area: 目标脑区
+ * @param num_synapses: 新突触数量 
+ */
 void Brain::ChooseSynapsesFromActivated(const Area& area,
                                         uint32_t num_synapses) {
-  const uint32_t neuron = area.support;
-  uint32_t total_k = 0;
+  const uint32_t neuron = area.support; // 新神经元（待连接）
+  uint32_t total_k = 0; // 记录到达该脑区的激活神经元的总数
   std::vector<uint32_t> offsets;
   const auto& incoming_fibers = incoming_fibers_[area.index];
   for (uint32_t fiber_i : incoming_fibers) {
@@ -544,7 +572,8 @@ void Brain::ChooseSynapsesFromActivated(const Area& area,
   }
   offsets.push_back(total_k);
   std::uniform_int_distribution<> u(0, total_k - 1);
-  std::vector<uint8_t> selected(total_k);
+  std::vector<uint8_t> selected(total_k); // 记录已选择的神经元，避免重复选择
+  // 为每一个新神经元选择一个激活神经元连接
   for (uint32_t j = 0; j < num_synapses; ++j) {
     uint32_t next_i;
     while (selected[next_i = u(rng_)]) {}
@@ -558,6 +587,12 @@ void Brain::ChooseSynapsesFromActivated(const Area& area,
   }
 }
 
+/**
+ * @brief 从到达该脑区的其它脑区中选择未激活神经元连接到该脑区的新神经元
+ * 
+ * @param area: 目标脑区
+ * @param total_synapses: 总新增突触数量
+ */
 void Brain::ChooseSynapsesFromNonActivated(const Area& area,
                                            uint32_t& total_synapses) {
   const uint32_t neuron = area.support;
@@ -600,6 +635,11 @@ void Brain::ChooseSynapsesFromNonActivated(const Area& area,
   }
 }
 
+/**
+ * @brief 为新神经元选择输出突触
+ * 
+ * @param area: 目标脑区
+ */
 void Brain::ChooseOutgoingSynapses(const Area& area) {
   for (uint32_t fiber_i : outgoing_fibers_[area.index]) {
     Fiber& fiber = fibers_[fiber_i];
@@ -611,6 +651,12 @@ void Brain::ChooseOutgoingSynapses(const Area& area) {
   }
 }
 
+/**
+ * @brief 更新突触权重
+ * 
+ * @param to_area: 目标脑区
+ * @param new_activated: 新激活神经元
+ */
 void Brain::UpdatePlasticity(Area& to_area,
                              const std::vector<uint32_t>& new_activated) {
   std::vector<uint8_t> is_new_activated(to_area.support);
@@ -633,6 +679,13 @@ void Brain::UpdatePlasticity(Area& to_area,
   }
 }
 
+/**
+ * @brief 获得指定脑区 k 个激活神经元中的最大重叠数量和 assembly 索引。
+ * 
+ * @param name: 脑区名称
+ * @param index: assembly 索引
+ * @param overlap: 重叠数量
+ */
 void Brain::ReadAssembly(const std::string& name,
                          size_t& index, size_t& overlap) {
   const Area& area = GetArea(name);
@@ -645,6 +698,11 @@ void Brain::ReadAssembly(const std::string& name,
   overlap = overlaps[index];
 }
 
+/**
+ * @brief 打印指定脑区的激活神经元
+ * 
+ * @param area_name: 脑区名称 
+ */
 void Brain::LogActivated(const std::string& area_name) {
   const Area& area = GetArea(area_name);
   printf("[%s] activated: ", area_name.c_str());
@@ -652,6 +710,10 @@ void Brain::LogActivated(const std::string& area_name) {
   printf("\n");
 }
 
+/**
+ * @brief 打印图的统计信息。
+ * 
+ */
 void Brain::LogGraphStats() {
   printf("Graph Stats after %u update steps\n", step_);
   for (const auto& area : areas_) {
@@ -671,7 +733,7 @@ void Brain::LogGraphStats() {
     size_t num_synapses = 0;
     size_t num_low_weights = 0;
     size_t num_mid_weights = 0;
-    size_t num_sat_weights = 0;
+    size_t num_sat_weights = 0;   // 饱和权重数量
     float max_w = 0.0;
     for (uint32_t i = 0; i < fiber.outgoing_synapses.size(); ++i) {
       const auto& synapses = fiber.outgoing_synapses[i];

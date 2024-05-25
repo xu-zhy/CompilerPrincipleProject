@@ -19,6 +19,13 @@ namespace {
 
 constexpr int kLogLevel = 0;
 
+/**
+ * @brief 从激活的神经元中随机抽样
+ * 
+ * @param activated: 激活的神经元索引
+ * @param alpha: 抽样比例 
+ * @param seed: 随机数种子 
+ */
 void Subsample(std::vector<uint32_t>& activated, float alpha, uint32_t seed) {
   std::mt19937 rng(seed);
   uint32_t new_k = alpha * activated.size();
@@ -34,6 +41,16 @@ void Subsample(std::vector<uint32_t>& activated, float alpha, uint32_t seed) {
   std::swap(activated, new_activated);
 }
 
+/**
+ * @brief 设置一个刺激（无法翻译，大致就是只有一个 fix 的脑区和一个待更新的脑区）
+ * 
+ * @param n: 神经元数量
+ * @param k: 激活的最大神经元数量 
+ * @param p: 激活概率 
+ * @param beta: 赫布可塑性参数 
+ * @param is_explicit: 是否显式 
+ * @return Brain: 设置的大脑对象 
+ */
 Brain SetupOneStimulus(uint32_t n, uint32_t k, float p, float beta,
                        bool is_explicit = false) {
   Brain brain(p, beta, 10000.0, 7777);
@@ -44,6 +61,16 @@ Brain SetupOneStimulus(uint32_t n, uint32_t k, float p, float beta,
   return brain;
 }
 
+/**
+ * @brief 设置两个刺激（无法翻译，大致就是两个 fix 的脑区和两个待更新的脑区）
+ * 
+ * @param n: 神经元数量 
+ * @param k: 激活的最大神经元数量 
+ * @param p: 激活概率 
+ * @param beta: 赫布可塑性参数 
+ * @param is_explicit: 是否显式 
+ * @return Brain: 设置的大脑对象 
+ */
 Brain SetupTwoStimuli(uint32_t n, uint32_t k, float p, float beta,
                       bool is_explicit = false) {
   Brain brain(p, beta, 10000.0, 7777);
@@ -57,6 +84,12 @@ Brain SetupTwoStimuli(uint32_t n, uint32_t k, float p, float beta,
   return brain;
 }
 
+/**
+ * @brief 计算所有脑区的集合
+ * 
+ * @param graph: 脑区图
+ * @return std::set<std::string>: 脑区集合
+ */
 std::set<std::string> AllAreas(
     const std::map<std::string, std::vector<std::string>>& graph) {
   std::set<std::string> areas;
@@ -69,14 +102,24 @@ std::set<std::string> AllAreas(
   return areas;
 }
 
+/**
+ * @brief 模拟脑区的投影
+ * 
+ * @param brain: 大脑对象
+ * @param graph: 脑区图
+ * @param steps: 模拟步数 
+ * @param convergence: 收敛率 
+ */
 void Project(Brain& brain, const ProjectMap& graph,
              int steps, float convergence = 1.0) {
   std::map<std::string, std::vector<uint32_t>> prev_activated;
   std::set<std::string> all_areas = AllAreas(graph);
+  // 先模拟 steps-1 步，然后记录激活神经元
   brain.Project(graph, steps - 1);
   for (const auto& area_name : all_areas) {
     prev_activated[area_name] = brain.GetArea(area_name).activated;
   }
+  // 再模拟最后一步，检查激活脑区是否收敛
   brain.SimulateOneStep();
   for (const auto& area_name : all_areas) {
     const Area& area = brain.GetArea(area_name);
@@ -85,6 +128,14 @@ void Project(Brain& brain, const ProjectMap& graph,
   }
 }
 
+/*
+  下面是使用 google test 框架进行测试
+  分别测试了投影、显式投影、完成、关联、合并等操作
+  关于这些操作的意思，见论文:
+  Papadimitriou et al.-2020-Brain computation by assemblies of neurons
+  info.md 有部分总结
+  不过似乎不重要
+*/
 TEST(BrainTest, TestProjection) {
   Brain brain = SetupOneStimulus(1000000, 1000, 0.001, 0.05);
   Project(brain, {{"StimA", {"A"}}, {"A", {"A"}}}, 25, 0.999);
@@ -117,7 +168,6 @@ TEST(BrainTest, TestAssociation) {
 
   Project(brain,
           {{"StimA", {"A"}}, {"StimB", {"B"}}, {"A", {"A"}}, {"B", {"B"}}}, 10);
-
   Project(brain,
           {{"StimA", {"A"}}, {"A", {"A","C"}}, {"C", {"C"}}}, 10);
   std::vector<uint32_t> proj_A = brain.GetArea("C").activated;
@@ -128,6 +178,7 @@ TEST(BrainTest, TestAssociation) {
           {{"StimB", {"B"}}, {"B", {"B","C"}}, {"C", {"C"}}}, 9);
   std::vector<uint32_t> proj_B = brain.GetArea("C").activated;
 
+  // 在没有关联的情况下，两个不同刺激源形成的神经元集合是相互独立的
   ASSERT_LE(NumCommon(proj_A, proj_B), 2);
 
   Project(brain,
@@ -138,6 +189,7 @@ TEST(BrainTest, TestAssociation) {
            {"A", {"A", "C"}}, {"B", {"B","C"}}, {"C", {"C"}}}, 9);
   std::vector<uint32_t> proj_AB = brain.GetArea("C").activated;
 
+  // 在关联的情况下，两个不同刺激源形成的神经元集合是相互重叠的
   ASSERT_GE(NumCommon(proj_A, proj_AB), 90);
   ASSERT_GE(NumCommon(proj_B, proj_AB), 90);
 
@@ -146,6 +198,8 @@ TEST(BrainTest, TestAssociation) {
   Project(brain,
           {{"StimB", {"B"}}, {"B", {"B","C"}}, {"C", {"C"}}}, 9);
   std::vector<uint32_t> proj_B_postassoc = brain.GetArea("C").activated;
+
+  // 关联操作在后续投射中保持了部分共同神经元
   ASSERT_GE(NumCommon(proj_A, proj_B_postassoc), 30);
   ASSERT_GE(NumCommon(proj_AB, proj_B_postassoc), 200);
 
@@ -155,6 +209,7 @@ TEST(BrainTest, TestAssociation) {
           {{"StimA", {"A"}}, {"A", {"A","C"}}, {"C", {"C"}}}, 9);
   std::vector<uint32_t> proj_A_postassoc = brain.GetArea("C").activated;
 
+  // 关联操作在后续投射中保持了部分共同神经元
   ASSERT_GE(NumCommon(proj_B, proj_A_postassoc), 30);
   ASSERT_GE(NumCommon(proj_AB, proj_A_postassoc), 200);
 }
@@ -184,6 +239,8 @@ TEST(BrainTest, TestMerge) {
           1, 0.0);
   Project(brain, {{"StimA", {"A"}}, {"A", {"A", "C"}}, {"C", {"B", "C"}},
                   {"B", {"B"}}}, 50);
+
+  // 在合并操作后，B 区的激活神经元集合应该与之前的集合有很大重叠
   ASSERT_GE(NumCommon(brain.GetArea("B").activated, assembly_B), 0.95 * k);
 }
 
