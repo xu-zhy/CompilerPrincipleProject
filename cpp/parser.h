@@ -1,3 +1,6 @@
+#ifndef NEMO_PARSER_H_
+#define NEMO_PARSER_H_
+
 #include "brain.h"
 #include <vector>
 #include <variant>
@@ -68,88 +71,15 @@ struct RuleSet {
     std::vector<Rule> post_rules;
 };
 
-RuleSet generic_noun(int index) {
-    return {
-        
-    };
-}
-
-RuleSet generic_trans_verb(int index) {
-    return {
-        
-    };
-}
-
-RuleSet generic_intrans_verb(int index) {
-    return {
-        
-    };
-}
-
-RuleSet generic_copula(int index) {
-    return {
-        
-    };
-}
-
-RuleSet generic_adverb(int index) {
-    return {
-        
-    };
-}
-
-RuleSet generic_determinant(int index) {
-    return {
-        index,
-        { // PRE_RULES
-          AreaRule(DISINHIBIT, DET, 0), 
-          FiberRule(DISINHIBIT, LEX, DET, 0)
-        },  
-        { // POST_RULES
-          FiberRule(INHIBIT, LEX, DET, 0),
-          FiberRule(INHIBIT, VERB, ADJ, 0),
-        }
-    };
-}
-
-RuleSet generic_adjective(int index) {
-    return {
-        
-    };
-}
-
-RuleSet generic_preposition(int index) {
-    return {
-        
-    };
-}
-
-std::unordered_map<std::string, RuleSet> generateLexemeDict() {
-    std::unordered_map<std::string, RuleSet> lexemeDict;
-
-    lexemeDict["the"] = generic_determinant(0);
-    lexemeDict["a"] = generic_determinant(1);
-    lexemeDict["dogs"] = generic_noun(2);
-    lexemeDict["cats"] = generic_noun(3);
-    lexemeDict["mice"] = generic_noun(4);
-    lexemeDict["people"] = generic_noun(5);
-    lexemeDict["chase"] = generic_trans_verb(6);
-    lexemeDict["love"] = generic_trans_verb(7);
-    lexemeDict["bite"] = generic_trans_verb(8);
-    lexemeDict["of"] = generic_preposition(9);
-    lexemeDict["big"] = generic_adjective(10);
-    lexemeDict["bad"] = generic_adjective(11);
-    lexemeDict["run"] = generic_intrans_verb(12);
-    lexemeDict["fly"] = generic_intrans_verb(13);
-    lexemeDict["quickly"] = generic_adverb(14);
-    lexemeDict["in"] = generic_preposition(15);
-    lexemeDict["are"] = generic_copula(16);
-    lexemeDict["man"] = generic_noun(17);
-    lexemeDict["woman"] = generic_noun(18);
-    lexemeDict["saw"] = generic_trans_verb(19);
-
-    return lexemeDict;
-}
+RuleSet generic_noun(int index);
+RuleSet generic_trans_verb(int index);
+RuleSet generic_intrans_verb(int index);
+RuleSet generic_copula(int index);
+RuleSet generic_adverb(int index);
+RuleSet generic_determinant(int index);
+RuleSet generic_adjective(int index);
+RuleSet generic_preposition(int index);
+std::unordered_map<std::string, RuleSet> generateLexemeDict();
 
 std::unordered_map<std::string, std::vector<std::string>> readout_rules = {
     {"VERB", {"LEX", "SUBJ", "OBJ", "PREP_P", "ADVERB", "ADJ"}},
@@ -225,3 +155,5 @@ void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20,
 	       int project_rounds=20, bool verbose=true, bool debug=false, int readout_method=2);
 
 }  // namespace nemo
+
+#endif // NEMO_BRAIN_H_
