@@ -1,3 +1,9 @@
-Quick README
+# Usage
+```shell
+cd cpp
+cmake -S . -B build
+cmake --build build
+cd build && ctest
+```
 
-This repository contains code for simulating operations in the assembly model of brain computation.
+# TODO
