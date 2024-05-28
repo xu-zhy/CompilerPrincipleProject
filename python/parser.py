@@ -1,4 +1,3 @@
-#! /usr/bin/python3.9
 import brain
 import brain_util as bu
 import numpy as np
@@ -28,6 +27,7 @@ DAT = "DAT"
 
 # Fixed area stats for explicit areas
 LEX_SIZE = 20
+DET_SIZE = 2
 
 # Actions
 DISINHIBIT = "DISINHIBIT"
@@ -662,7 +662,7 @@ class ReadoutMethod(Enum):
 
 
 
-def parse(sentence="cats chase mice", language="English", p=0.1, LEX_k=20, 
+def parse(sentence="the man saw a woman", language="English", p=0.1, LEX_k=20, 
 	project_rounds=20, verbose=True, debug=False, readout_method=ReadoutMethod.FIBER_READOUT):
 
 	if language == "English":
