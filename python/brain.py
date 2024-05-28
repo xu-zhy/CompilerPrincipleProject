@@ -329,6 +329,7 @@ class Brain:
         raise ValueError(f"Projecting from area with no assembly: {from_area}")
 
     # For experiments with a "fixed" assembly in some area.
+    target_area_name = target_area.name
     if target_area.fixed_assembly:
       target_area._new_winners = target_area.winners
       target_area._new_w = target_area.w
@@ -336,140 +337,140 @@ class Brain:
       num_first_winners_processed = 0
 
     else:
-	    target_area_name = target_area.name
-	    prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
-	    for stim in from_stimuli:
-	      stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
-	      prev_winner_inputs += stim_inputs
-	    for from_area_name in from_areas:
-	      connectome = self.connectomes[from_area_name][target_area_name]
-	      for w in self.area_by_name[from_area_name].winners:
-	        prev_winner_inputs += connectome[w]
+      
+      prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
+      for stim in from_stimuli:
+        stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
+        prev_winner_inputs += stim_inputs
+      for from_area_name in from_areas:
+        connectome = self.connectomes[from_area_name][target_area_name]
+        for w in self.area_by_name[from_area_name].winners:
+          prev_winner_inputs += connectome[w]
 
-	    if verbose >= 2:
-	      print("prev_winner_inputs:", prev_winner_inputs)
+      if verbose >= 2:
+        print("prev_winner_inputs:", prev_winner_inputs)
 
-	    # simulate area.k potential new winners if the area is not explicit
-	    if not target_area.explicit:
-	      input_size_by_from_area_index = []
-	      num_inputs = 0
-	      normal_approx_mean = 0.0
-	      normal_approx_var = 0.0
-	      for stim in from_stimuli:
-	        local_k = self.stimulus_size_by_name[stim]
-	        input_size_by_from_area_index.append(local_k)
-	        num_inputs += 1
-	        ### if self._use_normal_ppf:  # Not active currently.
-	        ###   local_p = self.custom_stim_p[stim][target_area_name]
-	        ###   normal_approx_mean += local_k * local_p
-	        ###   normal_approx_var += ((local_k * local_p * (1 - local_p)) ** 2)
-	      for from_area_name in from_areas:
-	        # if self.area_by_name[from_area_name].w < self.area_by_name[from_area_name].k:
-	        #   raise ValueError("Area " + from_area_name + "does not have enough support.")
-	        effective_k = len(self.area_by_name[from_area_name].winners)
-	        input_size_by_from_area_index.append(effective_k)
-	        num_inputs += 1
-	        ### if self._use_normal_ppf:  # Disabled for now.
-	        ###   local_p = self.custom_stim_p[from_area_name][target_area_name]
-	        ###   normal_approx_mean += effective_k * local_p
-	        ###   normal_approx_var += ((effective_k * local_p * (1-p)) ** 2)
+      # simulate area.k potential new winners if the area is not explicit
+      if not target_area.explicit:
+        input_size_by_from_area_index = []
+        num_inputs = 0
+        normal_approx_mean = 0.0
+        normal_approx_var = 0.0
+        for stim in from_stimuli:
+          local_k = self.stimulus_size_by_name[stim]
+          input_size_by_from_area_index.append(local_k)
+          num_inputs += 1
+          ### if self._use_normal_ppf:  # Not active currently.
+          ###   local_p = self.custom_stim_p[stim][target_area_name]
+          ###   normal_approx_mean += local_k * local_p
+          ###   normal_approx_var += ((local_k * local_p * (1 - local_p)) ** 2)
+        for from_area_name in from_areas:
+          # if self.area_by_name[from_area_name].w < self.area_by_name[from_area_name].k:
+          #   raise ValueError("Area " + from_area_name + "does not have enough support.")
+          effective_k = len(self.area_by_name[from_area_name].winners)
+          input_size_by_from_area_index.append(effective_k)
+          num_inputs += 1
+          ### if self._use_normal_ppf:  # Disabled for now.
+          ###   local_p = self.custom_stim_p[from_area_name][target_area_name]
+          ###   normal_approx_mean += effective_k * local_p
+          ###   normal_approx_var += ((effective_k * local_p * (1-p)) ** 2)
 
-	      total_k = sum(input_size_by_from_area_index)
-	      if verbose >= 2:
-	        print(f"{total_k=} and {input_size_by_from_area_index=}")
+        total_k = sum(input_size_by_from_area_index)
+        if verbose >= 2:
+          print(f"{total_k=} and {input_size_by_from_area_index=}")
 
-	      effective_n = target_area.n - target_area.w
-	      if effective_n <= target_area.k:
-	      	raise RuntimeError(
-	      	    f'Remaining size of area "{target_area_name}" too small to sample k new winners.')
-	      # Threshold for inputs that are above (n-k)/n quantile.
-	      quantile = (effective_n - target_area.k) / effective_n
-	      if False:
-	        pass
-	      ### if self._use_normal_ppf:  # Disabled.
-	      ###   # each normal approximation is N(n*p, n*p*(1-p))
-	      ###   normal_approx_std = math.sqrt(normal_approx_var)
-	      ###   alpha = binom.ppf(quantile, loc=normal_approx_mean,
-	      ###                     scale=normal_approx_std)
-	      else:
-	        # self.p can be changed to have a custom connectivity into this
-	        # brain area but all incoming areas' p must be the same
-	        alpha = binom.ppf(quantile, total_k, self.p)
-	      if verbose >= 2:
-	        print(f"Alpha = {alpha}")
-	      # use normal approximation, between alpha and total_k, round to integer
-	      # create k potential_new_winners
-	      if False:  # to update to: self._use_normal_ppf:
-	        mu = normal_approx_mean
-	        std = normal_approx_std
-	      else:
-	        mu = total_k * self.p
-	        std = math.sqrt(total_k * self.p * (1.0 - self.p))
-	      a = (alpha - mu) / std
-	      b = (total_k - mu) / std
-	      potential_new_winner_inputs = (mu + truncnorm.rvs(
-	        a, b, scale=std, size=target_area.k)).round(0)
+        effective_n = target_area.n - target_area.w
+        if effective_n <= target_area.k:
+          raise RuntimeError(
+              f'Remaining size of area "{target_area_name}" too small to sample k new winners.')
+        # Threshold for inputs that are above (n-k)/n quantile.
+        quantile = (effective_n - target_area.k) / effective_n
+        if False:
+          pass
+        ### if self._use_normal_ppf:  # Disabled.
+        ###   # each normal approximation is N(n*p, n*p*(1-p))
+        ###   normal_approx_std = math.sqrt(normal_approx_var)
+        ###   alpha = binom.ppf(quantile, loc=normal_approx_mean,
+        ###                     scale=normal_approx_std)
+        else:
+          # self.p can be changed to have a custom connectivity into this
+          # brain area but all incoming areas' p must be the same
+          alpha = binom.ppf(quantile, total_k, self.p)
+        if verbose >= 2:
+          print(f"Alpha = {alpha}")
+        # use normal approximation, between alpha and total_k, round to integer
+        # create k potential_new_winners
+        if False:  # to update to: self._use_normal_ppf:
+          mu = normal_approx_mean
+          std = normal_approx_std
+        else:
+          mu = total_k * self.p
+          std = math.sqrt(total_k * self.p * (1.0 - self.p))
+        a = (alpha - mu) / std
+        b = (total_k - mu) / std
+        potential_new_winner_inputs = (mu + truncnorm.rvs(
+          a, b, scale=std, size=target_area.k)).round(0)
 
-	      if verbose >= 2:
-	        print(f"potential_new_winner_inputs: {potential_new_winner_inputs}")
+        if verbose >= 2:
+          print(f"potential_new_winner_inputs: {potential_new_winner_inputs}")
 
-	      # take max among prev_winner_inputs, potential_new_winner_inputs
-	      # get num_first_winners (think something small)
-	      # can generate area._new_winners, note the new indices
-	      all_potential_winner_inputs = np.concatenate(
-	          [prev_winner_inputs, potential_new_winner_inputs])
-	    else:  # Case: Area is explicit.
-	      all_potential_winner_inputs = prev_winner_inputs
+        # take max among prev_winner_inputs, potential_new_winner_inputs
+        # get num_first_winners (think something small)
+        # can generate area._new_winners, note the new indices
+        all_potential_winner_inputs = np.concatenate(
+            [prev_winner_inputs, potential_new_winner_inputs])
+      else:  # Case: Area is explicit.
+        all_potential_winner_inputs = prev_winner_inputs
 
-	    new_winner_indices = heapq.nlargest(target_area.k,
-	                                        range(len(all_potential_winner_inputs)),
-	                                        all_potential_winner_inputs.__getitem__)
-	    if target_area.explicit:
-	        for winner in new_winner_indices:
-	        	if not target_area.ever_fired[winner]:
-	        		target_area.ever_fired[winner] = True 
-	        		target_area.num_ever_fired += 1
+      new_winner_indices = heapq.nlargest(target_area.k,
+                                          range(len(all_potential_winner_inputs)),
+                                          all_potential_winner_inputs.__getitem__)
+      if target_area.explicit:
+          for winner in new_winner_indices:
+            if not target_area.ever_fired[winner]:
+              target_area.ever_fired[winner] = True 
+              target_area.num_ever_fired += 1
 
-	    num_first_winners_processed = 0
+      num_first_winners_processed = 0
 
-	    if not target_area.explicit:
-	      first_winner_inputs = []
-	      for i in range(target_area.k):
-	        if new_winner_indices[i] >= target_area.w:
-	          # Winner-index larger than `w` means that this winner was
-	          # first-activated here.
-	          first_winner_inputs.append(
-	              all_potential_winner_inputs[new_winner_indices[i]])
-	          new_winner_indices[i] = target_area.w + num_first_winners_processed
-	          num_first_winners_processed += 1
-	    target_area._new_winners = new_winner_indices
-	    target_area._new_w = target_area.w + num_first_winners_processed
+      if not target_area.explicit:
+        first_winner_inputs = []
+        for i in range(target_area.k):
+          if new_winner_indices[i] >= target_area.w:
+            # Winner-index larger than `w` means that this winner was
+            # first-activated here.
+            first_winner_inputs.append(
+                all_potential_winner_inputs[new_winner_indices[i]])
+            new_winner_indices[i] = target_area.w + num_first_winners_processed
+            num_first_winners_processed += 1
+      target_area._new_winners = new_winner_indices
+      target_area._new_w = target_area.w + num_first_winners_processed
 
-	    if verbose >= 2:
-	      print(f"new_winners: {target_area._new_winners}")
+      if verbose >= 2:
+        print(f"new_winners: {target_area._new_winners}")
 
-	    # for i in num_first_winners
-	    # generate where input came from
-	      # 1) can sample input from array of size total_k, use ranges
-	      # 2) can use stars/stripes method: if m total inputs,
-	      #    sample (m-1) out of total_k
-	    inputs_by_first_winner_index = [None] * num_first_winners_processed
-	    for i in range(num_first_winners_processed):
-	      input_indices = rng.choice(range(total_k),
-	                                 int(first_winner_inputs[i]),
-	                                 replace=False)
-	      num_connections_by_input_index = np.zeros(num_inputs)
-	      total_so_far = 0
-	      for j in range(num_inputs):
-	        num_connections_by_input_index[j] = sum(
-	          total_so_far + input_size_by_from_area_index[j] > w >= total_so_far
-	          for w in input_indices)
-	        total_so_far += input_size_by_from_area_index[j]
-	      inputs_by_first_winner_index[i] = num_connections_by_input_index
-	      if verbose >= 2:
-	        print(f"For first_winner # {i} with input "
-	              f"{first_winner_inputs[i]} split as so: "
-	              f"{num_connections_by_input_index}")
+      # for i in num_first_winners
+      # generate where input came from
+        # 1) can sample input from array of size total_k, use ranges
+        # 2) can use stars/stripes method: if m total inputs,
+        #    sample (m-1) out of total_k
+      inputs_by_first_winner_index = [None] * num_first_winners_processed
+      for i in range(num_first_winners_processed):
+        input_indices = rng.choice(range(total_k),
+                                   int(first_winner_inputs[i]),
+                                   replace=False)
+        num_connections_by_input_index = np.zeros(num_inputs)
+        total_so_far = 0
+        for j in range(num_inputs):
+          num_connections_by_input_index[j] = sum(
+            total_so_far + input_size_by_from_area_index[j] > w >= total_so_far
+            for w in input_indices)
+          total_so_far += input_size_by_from_area_index[j]
+        inputs_by_first_winner_index[i] = num_connections_by_input_index
+        if verbose >= 2:
+          print(f"For first_winner # {i} with input "
+                f"{first_winner_inputs[i]} split as so: "
+                f"{num_connections_by_input_index}")
 
     # connectome for each stim->area
       # add num_first_winners_processed cells, sampled input * (1+beta)
@@ -499,13 +500,13 @@ class Brain:
 
     # update connectomes from stimuli that were not fired this round into the area.
     if (not target_area.explicit) and (num_first_winners_processed > 0):
-	    for stim_name, connectomes in self.connectomes_by_stimulus.items():
-	        if stim_name in from_stimuli:
-	    	    continue
-	        connectomes[target_area_name] = the_connectome = np.resize(
-	    		connectomes[target_area_name],
-	    		target_area._new_w)
-	        the_connectome[target_area.w:] = rng.binomial(
+      for stim_name, connectomes in self.connectomes_by_stimulus.items():
+          if stim_name in from_stimuli:
+            continue
+          connectomes[target_area_name] = the_connectome = np.resize(
+          connectomes[target_area_name],
+          target_area._new_w)
+          the_connectome[target_area.w:] = rng.binomial(
                 self.stimulus_size_by_name[stim_name], self.p,
                 size=(num_first_winners_processed))
 
