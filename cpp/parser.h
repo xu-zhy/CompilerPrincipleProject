@@ -9,6 +9,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// needed for namespace
+#include <iostream>
+#include <string>
 
 namespace nemo {
 
@@ -25,6 +28,7 @@ const std::string ADVERB = "ADVERB";
 
 // Fixed area stats for explicit areas
 const int LEX_SIZE = 20;
+const int LEX_SIZE = 2;
 
 // Actions
 const std::string DISINHIBIT = "DISINHIBIT";
@@ -81,7 +85,7 @@ RuleSet generic_adjective(int index);
 RuleSet generic_preposition(int index);
 std::unordered_map<std::string, RuleSet> generateLexemeDict();
 
-std::unordered_map<std::string, std::vector<std::string>> readout_rules = {
+std::unordered_map<std::string, std::vector<std::string>> ENGLISH_READOUT_RULES = {
     {"VERB", {"LEX", "SUBJ", "OBJ", "PREP_P", "ADVERB", "ADJ"}},
     {"SUBJ", {"LEX", "DET", "ADJ", "PREP_P"}},
     {"OBJ", {"LEX", "DET", "ADJ", "PREP_P"}},
@@ -102,8 +106,10 @@ class ParserBrain : public Brain {
   std::unordered_map<std::string, std::vector<std::string>> readout_rules;
   std::unordered_map<std::string, std::unordered_map<std::string, std::unordered_set<int>>> fiber_states;
   std::unordered_map<std::string, std::unordered_set<int>> area_states;
+  // unchecked data type
+  std::unordered_map<std::string, std::unordered_set<std::string>> activated_fibers;
 
-  ParserBrain(float p, float beta, float max_weight, uint32_t seed, 
+  ParserBrain(float p, // float beta, float max_weight, uint32_t seed, 
               std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 
               std::vector<std::string> all_areas = {}, 
               std::vector<std::string> recurrent_areas = {}, 

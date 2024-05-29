@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+// needed for namespace
+#include <iostream>
+
 namespace nemo {
 
 struct Synapse {

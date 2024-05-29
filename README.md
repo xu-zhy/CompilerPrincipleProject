@@ -50,10 +50,18 @@ try {
     }
 ```
 
-### 2 DET_SIZE-[FIXED]
+### 2 DET_SIZE - [FIXED]
 written by KJX
 
 python parser.py 代码在 551 行出现了一个未定义常量 DET_SIZE，暂时没找到定义
+
+### 3 Namespace - [FIXED]
+需要在 brain.h 基础路径下加上：
+```c++
+// needed for namespace
+#include <iostream>
+```
+这样就不会报错无法使用限定名或 std::vector 未定义的情况
 
 # Devotion
 > 总结自己的全部贡献，包括论文环节和代码环节，方便实验报告汇总
