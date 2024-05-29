@@ -2,16 +2,20 @@
 #define NEMO_PARSER_H_
 
 #include "brain.h"
-#include <vector>
 #include <variant>
-#include <map>
 #include <set>
+
+// brain.h - 41 | typedef std::map<std::string, std::vector<std::string>> ProjectMap;
+// 因为 brain.h 内有预定义，因此我将所有额外定义的 map 和 set 改成 ProjectMap
+// 所有被替换成 ProjectMap 的地方都会有对应的注释
 #include <unordered_map>
 #include <unordered_set>
 
-// needed for namespace
-#include <iostream>
-#include <string>
+// kjx needed
+#include <exception>
+#include <stdexcept>
+#include <algorithm>
+
 
 namespace nemo {
 
@@ -85,7 +89,8 @@ RuleSet generic_adjective(int index);
 RuleSet generic_preposition(int index);
 std::unordered_map<std::string, RuleSet> generateLexemeDict();
 
-std::unordered_map<std::string, std::vector<std::string>> ENGLISH_READOUT_RULES = {
+// ProjectMap
+ProjectMap ENGLISH_READOUT_RULES = {
     {"VERB", {"LEX", "SUBJ", "OBJ", "PREP_P", "ADVERB", "ADJ"}},
     {"SUBJ", {"LEX", "DET", "ADJ", "PREP_P"}},
     {"OBJ", {"LEX", "DET", "ADJ", "PREP_P"}},
@@ -98,23 +103,24 @@ std::unordered_map<std::string, std::vector<std::string>> ENGLISH_READOUT_RULES 
 };
 
 class ParserBrain : public Brain {
- public:
+public:
+  
   std::unordered_map<std::string, RuleSet> lexeme_dict;
   std::vector<std::string> all_areas;
   std::vector<std::string> recurrent_areas;
   std::vector<std::string> initial_areas;
-  std::unordered_map<std::string, std::vector<std::string>> readout_rules;
+  ProjectMap readout_rules; // ProjectMap
   std::unordered_map<std::string, std::unordered_map<std::string, std::unordered_set<int>>> fiber_states;
   std::unordered_map<std::string, std::unordered_set<int>> area_states;
   // unchecked data type
-  std::unordered_map<std::string, std::unordered_set<std::string>> activated_fibers;
+  ProjectMap activated_fibers; // ProjectMap
 
-  ParserBrain(float p, // float beta, float max_weight, uint32_t seed, 
+  ParserBrain(float p, float beta, float max_weight, uint32_t seed, 
               std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 
               std::vector<std::string> all_areas = {}, 
               std::vector<std::string> recurrent_areas = {}, 
               std::vector<std::string> initial_areas = {}, 
-              std::unordered_map<std::string, std::vector<std::string>> readout_rules = {});
+              ProjectMap readout_rules = {});
 
   void initialize_states();
 
@@ -122,7 +128,8 @@ class ParserBrain : public Brain {
 
   void applyAreaRule(const AreaRule& rule);
 
-  void applyRule(const Rule& rule);
+  // void -> bool
+  bool applyRule(const Rule& rule);
 
   void parse_project();
 
