@@ -12,7 +12,9 @@ cd build && ctest
 ---
 
 ### XZY
-
+1. [DONE] 阅读 AC 代码并添加注释
+2. [DONE] 定义 parser 代码框架
+3. [TODO] 使用 GoogleTest 编写测试文件
 ### KJX
 
 1. 转换 python 代码中
@@ -48,7 +50,7 @@ try {
     }
 ```
 
-### 2 DET_SIZE
+### 2 DET_SIZE-[FIXED]
 written by KJX
 
 python parser.py 代码在 551 行出现了一个未定义常量 DET_SIZE，暂时没找到定义
