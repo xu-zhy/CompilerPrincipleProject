@@ -19,11 +19,13 @@
 
 0. ~~补全 parser.cc 基础框架~~ 5.28
 1. ~~ParserBrain 基础定义~~ 5.29
-2. EnglishParserBrain 基础定义
-3. 两个类参数数据类型的确定
+2. ~~EnglishParserBrain 基础定义~~
+3. 两个类参数数据类型的确定 ProjectMap
 4. ~~两个不同rule的判断和转化~~ 5.29
-5. parse_project 函数和 ProjectMap 模块类型
-6. area_by_name Brain类
+5. ~~parse_project 函数和 ProjectMap 模块类型~~ 5.30
+6. ~~area_by_name Brain类~~ 5.30
+7. activateWord 的 ActivateArea
+8. EnglishParserBrain 构造函数的 update_plasticities 
 
 ### XJW
 
@@ -68,9 +70,13 @@ python parser.py 代码在 551 行出现了一个未定义常量 DET_SIZE，暂�
 ```
 这样就不会报错无法使用限定名或 std::vector 未定义的情况
 
-### 4 
+### 4 pptree
 parser.py 使用 conda 安装 pptree 可见：
 https://github.com/conda-forge/pptree-feedstock
+
+### 5 fix_assembly
+在 brain.py 40 行，是检查集合是否被冻结的参数
+但是 cc 里面没有定义，使用位置在 activateWord 里，因此目前暂时不考虑
 
 # Devotion
 > 总结自己的全部贡献，包括论文环节和代码环节，方便实验报告汇总

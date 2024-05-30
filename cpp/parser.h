@@ -32,7 +32,7 @@ const std::string ADVERB = "ADVERB";
 
 // Fixed area stats for explicit areas
 const int LEX_SIZE = 20;
-const int LEX_SIZE = 2;
+const int DET_SIZE = 2;
 
 // Actions
 const std::string DISINHIBIT = "DISINHIBIT";
@@ -148,6 +148,22 @@ public:
 
   std::unordered_map<std::string, std::unordered_set<std::string>> getActivatedFibers();
 };
+
+
+class EnglishParserBrain : public ParserBrain {
+public:
+  bool verbose;
+
+  EnglishParserBrain(float p, int non_LEX_n = 10000, 
+    int non_LEX_k = 100, int LEX_k = 20, double default_beta = 0.2, 
+    double LEX_beta = 1.0, double recurrent_beta = 0.05, 
+    double interarea_beta = 0.5, bool verbose = false);
+
+  ProjectMap getProjectMap();
+
+  std::string getWord(const std::string& area_name, double min_overlap = 0.7);
+};
+
 
 class ParserDebugger {
  public:

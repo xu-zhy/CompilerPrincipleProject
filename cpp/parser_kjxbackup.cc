@@ -176,7 +176,7 @@ public:
 
 class EnglishParserBrain : public ParserBrain {
 public:
-    EnglishParserBrain(const std::string& p, int non_LEX_n = 10000, 
+    EnglishParserBrain(float p, int non_LEX_n = 10000, 
     int non_LEX_k = 100, int LEX_k = 20, double default_beta = 0.2, 
     double LEX_beta = 1.0, double recurrent_beta = 0.05, 
     double interarea_beta = 0.5, bool verbose = false)

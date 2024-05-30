@@ -277,8 +277,8 @@ bool ParserBrain::recurrent(const std::string& area) {
 }
 
 // (s)std::map<std::string, uint32_t> area_by_name_;
-std::unordered_map<std::string, std::unordered_set<std::string>> ParserBrain::getProjectMap() {
-    std::unordered_map<std::string, std::unordered_set<std::string>> proj_map;
+ProjectMap ParserBrain::getProjectMap() {
+    ProjectMap proj_map;
     for (const auto& area1 : all_areas) {
         if (area_states[area1].empty()) {
             for (const auto& area2 : all_areas) {
@@ -287,7 +287,7 @@ std::unordered_map<std::string, std::unordered_set<std::string>> ParserBrain::ge
                 }
                 if (area_states[area2].empty()) {
                     if (fiber_states[area1][area2].empty()) {
-                        // 411 area_by_name winners? - Area::activated
+                        // (s)411 area_by_name winners? - Area::activated
                         // 是否是 (!)empty?
                         if (areas_[area_by_name_[area1]].activated.empty()) {
                             proj_map[area1].insert(area2);
@@ -305,26 +305,29 @@ std::unordered_map<std::string, std::unordered_set<std::string>> ParserBrain::ge
 
 
 void ParserBrain::activateWord(const std::string& area_name, const std::string& word) {
-    auto area_id = area_by_name_[area_name]; // 418 &
-    auto area = areas_[area_id];
-    int k = area.k;
-    int assembly_start = lexeme_dict[word] * k; // 420 index
+    auto &area = GetArea(area_name);
+    auto k = area.k;
+    auto assembly_start = lexeme_dict[word].index * k; // (s)420 index
     for (int i = 0; i < k; ++i) {
-        area.winners.push_back(assembly_start + i); // 421 1d or 2d matrix?
+        area.activated.push_back(assembly_start + i); // 421 1d or 2d matrix?
     }
-    area.fix_assembly();
+    // brain.py 40 - 检查集合是否被冻结的参数
+    // area.fix_assembly();
+    // assembly_start?
+    ActivateArea(area_name, assembly_start);
+    // 使用 ReadAssembly 读取 index？
 }
 
 
 void ParserBrain::activateIndex(const std::string& area_name, int index) {
-    auto area_id = area_by_name_[area_name];
-    auto area = areas_[area_id];
+    auto& area = GetArea(area_name);
     int k = area.k;
     int assembly_start = index * k;
     for (int i = 0; i < k; ++i) {
-        area.winners.push_back(assembly_start + i);
+        area.activated.push_back(assembly_start + i);
     }
-    area.fix_assembly();
+    // assembly_start?
+    ActivateArea(area_name, assembly_start);
 }
 
 
@@ -334,20 +337,22 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 
 
 std::string ParserBrain::getWord(const std::string& area_name, double min_overlap = 0.7) {
-    auto& winners = area_by_name_[area_name].winners;
+    // auto& winners = area_by_name_[area_name].winners; // ori
+    auto& area = GetArea(area_name);
+    auto& activated = area.activated;
     // 435 empty == not 吗？
-    if (winners.empty())
+    if (activated.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);
-    int area_k = area_by_name[area_name].k;
+    int area_k = area.k;
     int threshold = min_overlap * area_k;
     for (const auto& pair : lexeme_dict) {
         const std::string& word = pair.first; // index
-        int word_index = pair.second;
+        int word_index = pair.second.index;
         int word_assembly_start = word_index * area_k;
         int word_assembly_end = word_assembly_start + area_k;
         int count = 0;
         for (int i = word_assembly_start; i < word_assembly_end; ++i) {
-            if (std::find(winners.begin(), winners.end(), i) != winners.end()) {
+            if (std::find(activated.begin(), activated.end(), i) != activated.end()) {
                 ++count;
             }
         }
@@ -372,70 +377,74 @@ std::unordered_map<std::string, std::unordered_set<std::string>> ParserBrain::ge
 }
 
 
-// EnglishParserBrain(const std::string& p, int non_LEX_n = 10000, 
-//     int non_LEX_k = 100, int LEX_k = 20, double default_beta = 0.2, 
-//     double LEX_beta = 1.0, double recurrent_beta = 0.05, 
-//     double interarea_beta = 0.5, bool verbose = false)
-//     : ParserBrain(p, LEXEME_DICT, AREAS, RECURRENT_AREAS, 
-//     {LEX, SUBJ, VERB}, ENGLISH_READOUT_RULES),
-//         verbose(verbose) {
-//     int LEX_n = LEX_SIZE * LEX_k;
-//     add_explicit_area(LEX, LEX_n, LEX_k, default_beta);
+EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n = 10000, 
+    int non_LEX_k = 100, int LEX_k = 20, double default_beta = 0.2, 
+    double LEX_beta = 1.0, double recurrent_beta = 0.05, 
+    double interarea_beta = 0.5, bool verbose = false)
+    : ParserBrain(p, default_beta, 10000.0, 0, // (s)max_weight and seed
+    generateLexemeDict(), AREAS, RECURRENT_AREAS, 
+    {LEX, SUBJ, VERB}, ENGLISH_READOUT_RULES),
+    verbose(verbose) {
+    int LEX_n = LEX_SIZE * LEX_k;
+    // (s) parser.py 508 add_explicit_area 添加激活的脑区
+    // AddArea(LEX, LEX_n, LEX_k, default_beta);
+    AddStimulus(LEX, LEX_k);
 
-//     int DET_k = LEX_k;
-//     add_area(SUBJ, non_LEX_n, non_LEX_k, default_beta);
-//     add_area(OBJ, non_LEX_n, non_LEX_k, default_beta);
-//     add_area(VERB, non_LEX_n, non_LEX_k, default_beta);
-//     add_area(ADJ, non_LEX_n, non_LEX_k, default_beta);
-//     add_area(PREP, non_LEX_n, non_LEX_k, default_beta);
-//     add_area(PREP_P, non_LEX_n, non_LEX_k, default_beta);
-//     add_area(DET, non_LEX_n, DET_k, default_beta);
-//     add_area(ADVERB, non_LEX_n, non_LEX_k, default_beta);
+    int DET_k = LEX_k;
+    AddArea(SUBJ, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(OBJ, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(VERB, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(ADJ, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(PREP, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(PREP_P, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(DET, non_LEX_n, DET_k, default_beta);
+    AddArea(ADVERB, non_LEX_n, non_LEX_k, default_beta);
 
-//     std::unordered_map<std::string, std::vector<std::pair<std::string, double>>> custom_plasticities;
-//     for (const auto& area : RECURRENT_AREAS) { // 525 append
-//         custom_plasticities[LEX].emplace_back(area, LEX_beta);
-//         custom_plasticities[area].emplace_back(LEX, LEX_beta);
-//         custom_plasticities[area].emplace_back(area, recurrent_beta);
-//         for (const auto& other_area : RECURRENT_AREAS) {
-//             if (other_area == area) continue;
-//             custom_plasticities[area].emplace_back(other_area, interarea_beta);
-//         }
-//     }
-//     update_plasticities(custom_plasticities);
-// }
-
-
-// std::unordered_map<std::string, std::vector<std::string>> getProjectMap() override {
-//     auto proj_map = ParserBrain::getProjectMap();
-//     if (proj_map.find(LEX) != proj_map.end() && proj_map[LEX].size() > 2) {
-//         throw std::runtime_error("Got that LEX projecting into many areas: " + std::to_string(proj_map[LEX].size()));
-//     }
-//     return proj_map;
-// }
+    std::unordered_map<std::string, std::vector<std::pair<std::string, double>>> custom_plasticities;
+    for (const auto& area : RECURRENT_AREAS) { // 525 append
+        custom_plasticities[LEX].emplace_back(area, LEX_beta);
+        custom_plasticities[area].emplace_back(LEX, LEX_beta);
+        custom_plasticities[area].emplace_back(area, recurrent_beta);
+        for (const auto& other_area : RECURRENT_AREAS) {
+            if (other_area == area) continue;
+            custom_plasticities[area].emplace_back(other_area, interarea_beta);
+        }
+    }
+    // ?
+    // update_plasticities(custom_plasticities);
+}
 
 
-// std::string getWord(const std::string& area_name, double min_overlap = 0.7) override {
-//     auto word = ParserBrain::getWord(area_name, min_overlap);
-//     if (!word.empty()) {
-//         return word;
-//     }
-//     if (word.empty() && area_name == DET) {
-//         std::unordered_set<int> winners = area_by_name[area_name].winners;
-//         int area_k = area_by_name[area_name].k;
-//         double threshold = min_overlap * area_k;
-//         int nodet_index = DET_SIZE - 1;
-//         int nodet_assembly_start = nodet_index * area_k;
-//         std::unordered_set<int> nodet_assembly; // 553 int
-//         for (int i = nodet_assembly_start; i < nodet_assembly_start + area_k; ++i) {
-//             nodet_assembly.insert(i);
-//         }
-//         if (winners.size() > threshold && std::includes(winners.begin(), winners.end(), nodet_assembly.begin(), nodet_assembly.end())) {
-//             return "<null-det>";
-//         }
-//     }
-//     return "<NON-WORD>";
-// }
+ProjectMap EnglishParserBrain::getProjectMap() {
+    auto proj_map = ParserBrain::getProjectMap();
+    if (proj_map.find(LEX) != proj_map.end() && proj_map[LEX].size() > 2) {
+        throw std::runtime_error("Got that LEX projecting into many areas: " + std::to_string(proj_map[LEX].size()));
+    }
+    return proj_map;
+}
+
+
+std::string EnglishParserBrain::getWord(const std::string& area_name, double min_overlap = 0.7) {
+    auto word = ParserBrain::getWord(area_name, min_overlap);
+    if (!word.empty()) {
+        return word;
+    }
+    if (word.empty() && area_name == DET) {
+        auto& activated = GetArea(area_name).activated;
+        auto area_k = GetArea(area_name).k;
+        double threshold = min_overlap * area_k;
+        int nodet_index = DET_SIZE - 1;
+        int nodet_assembly_start = nodet_index * area_k;
+        std::unordered_set<int> nodet_assembly; // 553 int
+        for (int i = nodet_assembly_start; i < nodet_assembly_start + area_k; ++i) {
+            nodet_assembly.insert(i);
+        }
+        if (activated.size() > threshold && std::includes(activated.begin(), activated.end(), nodet_assembly.begin(), nodet_assembly.end())) {
+            return "<null-det>";
+        }
+    }
+    return "<NON-WORD>";
+}
 
 
 /*=================================TODO: ParserDebugger=================================*/
