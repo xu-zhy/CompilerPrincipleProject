@@ -104,7 +104,6 @@ ProjectMap ENGLISH_READOUT_RULES = {
 
 class ParserBrain : public Brain {
 public:
-  
   std::unordered_map<std::string, RuleSet> lexeme_dict;
   std::vector<std::string> all_areas;
   std::vector<std::string> recurrent_areas;
@@ -113,7 +112,7 @@ public:
   std::unordered_map<std::string, std::unordered_map<std::string, std::unordered_set<int>>> fiber_states;
   std::unordered_map<std::string, std::unordered_set<int>> area_states;
   // unchecked data type
-  ProjectMap activated_fibers; // ProjectMap
+  std::unordered_map<std::string, std::unordered_set<std::string>> activated_fibers; // ProjectMap
 
   ParserBrain(float p, float beta, float max_weight, uint32_t seed, 
               std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 
@@ -133,11 +132,11 @@ public:
 
   void parse_project();
 
-  void remember_fibers(const std::unordered_map<std::string, std::set<std::string>>& project_map);
+  void remember_fibers(const ProjectMap& project_map); // ProjectMap
 
   bool recurrent(const std::string& area);
 
-  std::unordered_map<std::string, std::set<std::string>> getProjectMap();
+  ProjectMap getProjectMap(); // ProjectMap
 
   void activateWord(const std::string& area_name, const std::string& word);
 
@@ -147,7 +146,7 @@ public:
 
   std::string getWord(const std::string& area_name, double min_overlap = 0.7);
 
-  std::unordered_map<std::string, std::set<std::string>> getActivatedFibers();
+  std::unordered_map<std::string, std::unordered_set<std::string>> getActivatedFibers();
 };
 
 class ParserDebugger {

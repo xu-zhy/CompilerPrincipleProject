@@ -196,7 +196,6 @@ std::unordered_map<std::string, RuleSet> generateLexemeDict() {
 /*对应 parser.py 的 ParserBrain 和 EnglishParserBrain */
 
 
-// deepcopy problem of p
 ParserBrain::ParserBrain(float p, float beta, float max_weight, uint32_t seed,
     std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 
     std::vector<std::string> all_areas = {}, 
@@ -247,29 +246,27 @@ void ParserBrain::applyAreaRule(const AreaRule& rule) {
     }
 }
 
-// 379 isinstancet
 bool ParserBrain::applyRule(const Rule& rule) {
     if (const FiberRule* fiberRule = std::get_if<FiberRule>(&rule)) {
         applyFiberRule(*fiberRule);
         return true;
     } else if (const AreaRule* areaRule = std::get_if<AreaRule>(&rule)) {
         applyAreaRule(*areaRule);
-        return false;
+        return true;
     }
     return false;
 }
 
-// void Project(const ProjectMap& graph, uint32_t num_steps, ...
+// (s)void Project(const ProjectMap& graph, uint32_t num_steps, ...
 void ParserBrain::parse_project() {
-    uint32_t num_steps = 10; // ?
     auto project_map = getProjectMap();
     remember_fibers(project_map);
-    Brain::Project(project_map, num_steps);
+    Brain::Project(project_map, step_); // (s)Brain::step_
 }
 
 // 395 update
 void ParserBrain::remember_fibers(const ProjectMap& project_map) {
-    for (const auto& pair : project_map) { 
+    for (const auto& pair : project_map) {
         activated_fibers[pair.first].insert(pair.second.begin(), pair.second.end());
     }
 }
@@ -279,9 +276,9 @@ bool ParserBrain::recurrent(const std::string& area) {
     return (std::find(recurrent_areas.begin(), recurrent_areas.end(), area) != recurrent_areas.end());
 }
 
-
-ProjectMap ParserBrain::getProjectMap() {
-    ProjectMap proj_map;
+// (s)std::map<std::string, uint32_t> area_by_name_;
+std::unordered_map<std::string, std::unordered_set<std::string>> ParserBrain::getProjectMap() {
+    std::unordered_map<std::string, std::unordered_set<std::string>> proj_map;
     for (const auto& area1 : all_areas) {
         if (area_states[area1].empty()) {
             for (const auto& area2 : all_areas) {
@@ -290,10 +287,12 @@ ProjectMap ParserBrain::getProjectMap() {
                 }
                 if (area_states[area2].empty()) {
                     if (fiber_states[area1][area2].empty()) {
-                        if (!area_by_name[area1].winners.empty()) { // 411 area_by_name winners?
+                        // 411 area_by_name winners? - Area::activated
+                        // 是否是 (!)empty?
+                        if (areas_[area_by_name_[area1]].activated.empty()) {
                             proj_map[area1].insert(area2);
                         }
-                        if (!area_by_name[area2].winners.empty()) {
+                        if (areas_[area_by_name_[area2]].activated.empty()) {
                             proj_map[area2].insert(area2);
                         }
                     }
@@ -306,7 +305,8 @@ ProjectMap ParserBrain::getProjectMap() {
 
 
 void ParserBrain::activateWord(const std::string& area_name, const std::string& word) {
-    auto& area = area_by_name[area_name]; // 418 &
+    auto area_id = area_by_name_[area_name]; // 418 &
+    auto area = areas_[area_id];
     int k = area.k;
     int assembly_start = lexeme_dict[word] * k; // 420 index
     for (int i = 0; i < k; ++i) {
@@ -317,7 +317,8 @@ void ParserBrain::activateWord(const std::string& area_name, const std::string& 
 
 
 void ParserBrain::activateIndex(const std::string& area_name, int index) {
-    auto& area = area_by_name[area_name];
+    auto area_id = area_by_name_[area_name];
+    auto area = areas_[area_id];
     int k = area.k;
     int assembly_start = index * k;
     for (int i = 0; i < k; ++i) {
@@ -333,7 +334,7 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 
 
 std::string ParserBrain::getWord(const std::string& area_name, double min_overlap = 0.7) {
-    auto& winners = area_by_name[area_name].winners;
+    auto& winners = area_by_name_[area_name].winners;
     // 435 empty == not 吗？
     if (winners.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);

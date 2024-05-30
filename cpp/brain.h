@@ -10,6 +10,8 @@
 
 // needed for namespace
 #include <iostream>
+#include <unordered_set>
+#include <unordered_map>
 
 namespace nemo {
 
@@ -38,7 +40,7 @@ struct Fiber {
   std::vector<std::vector<Synapse>> outgoing_synapses;  // 起始脑区每个神经元到目标脑区每个神经元的突触集合
 };
 
-typedef std::map<std::string, std::vector<std::string>> ProjectMap;
+typedef std::unordered_map<std::string, std::unordered_set<std::string>> ProjectMap;
 
 class Brain {
  public:

@@ -90,9 +90,9 @@ Brain SetupTwoStimuli(uint32_t n, uint32_t k, float p, float beta,
  * @param graph: 脑区图
  * @return std::set<std::string>: 脑区集合
  */
-std::set<std::string> AllAreas(
-    const std::map<std::string, std::vector<std::string>>& graph) {
-  std::set<std::string> areas;
+std::unordered_set<std::string> AllAreas(
+    const ProjectMap& graph) {
+  std::unordered_set<std::string> areas;
   for (const auto& [from, edges] : graph) {
     areas.insert(from);
     for (const auto& to : edges) {
@@ -112,8 +112,8 @@ std::set<std::string> AllAreas(
  */
 void Project(Brain& brain, const ProjectMap& graph,
              int steps, float convergence = 1.0) {
-  std::map<std::string, std::vector<uint32_t>> prev_activated;
-  std::set<std::string> all_areas = AllAreas(graph);
+  std::unordered_map<std::string, std::vector<uint32_t>> prev_activated;
+  std::unordered_set<std::string> all_areas = AllAreas(graph);
   // 先模拟 steps-1 步，然后记录激活神经元
   brain.Project(graph, steps - 1);
   for (const auto& area_name : all_areas) {
