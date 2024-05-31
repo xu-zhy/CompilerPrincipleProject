@@ -11,9 +11,10 @@
 ---
 
 ### XZY
-1. [DONE] 阅读 AC 代码并添加注释
-2. [DONE] 定义 parser 代码框架
-3. [TODO] 使用 GoogleTest 编写测试文件
+1. ~~阅读 AC 代码并添加注释~~
+2. ~~定义 parser 代码框架~~
+3. ~~测试句子、单词词性脚本 lexemedict~~
+3. 用 GoogleTest 编写测试代码
 
 ### KJX
 

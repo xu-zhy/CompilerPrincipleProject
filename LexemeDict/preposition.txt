@@ -1,0 +1,8 @@
+in
+outside
+on
+over
+around
+across
+at
+to
