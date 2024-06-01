@@ -113,6 +113,7 @@ public:
   std::unordered_map<std::string, std::unordered_set<int>> area_states;
   // unchecked data type
   std::unordered_map<std::string, std::unordered_set<std::string>> activated_fibers; // ProjectMap
+  bool disable_plasticity, save_winners;
 
   ParserBrain(float p, float beta, float max_weight, uint32_t seed, 
               std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 

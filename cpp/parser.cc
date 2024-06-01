@@ -450,4 +450,34 @@ std::string EnglishParserBrain::getWord(const std::string& area_name, double min
 /*=================================TODO: ParserDebugger=================================*/
 /*对应 parser.py 的 ParserDebugger 和 parser 函数（parserHelp） */
 
+ParserDebugger:: ParserDebugger(ParserBrain& brain, 
+                                const std::vector<std::string>& all_areas, 
+                                const std::vector<std::string>& explicit_areas)
+    : brain(brain), all_areas(all_areas), explicit_areas(explicit_areas) {}
+
+void ParserDebugger::run(){
+    using namespace std;
+    printf("DEBUGGER: ENTER to continue, 'P' for PEAK \n");
+    string command;
+    getline(cin, command);
+
+    while (!command.empty()) {
+        if (command == "P") {
+            peak();
+            return;
+        } else {
+            cout << "DEBUGGER: Command not recognized...\n";
+            cout << "DEBUGGER: ENTER to continue, 'P' for PEAK \n";
+            getline(cin, command);
+        }
+    }
+}
+
+void ParserDebugger::peak(){
+    using namespace std;
+    unordered_map<int, int> remove_map;
+    brain.disable_plasticity = true;
+    brain.save_winners = true;
+}
+
 }  // namespace nemo
