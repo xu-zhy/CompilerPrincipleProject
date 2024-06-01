@@ -450,34 +450,110 @@ std::string EnglishParserBrain::getWord(const std::string& area_name, double min
 /*=================================TODO: ParserDebugger=================================*/
 /*对应 parser.py 的 ParserDebugger 和 parser 函数（parserHelp） */
 
-ParserDebugger:: ParserDebugger(ParserBrain& brain, 
-                                const std::vector<std::string>& all_areas, 
-                                const std::vector<std::string>& explicit_areas)
-    : brain(brain), all_areas(all_areas), explicit_areas(explicit_areas) {}
-
-void ParserDebugger::run(){
+std::vector<std::string> split(std::string sentence){
     using namespace std;
-    printf("DEBUGGER: ENTER to continue, 'P' for PEAK \n");
-    string command;
-    getline(cin, command);
-
-    while (!command.empty()) {
-        if (command == "P") {
-            peak();
-            return;
-        } else {
-            cout << "DEBUGGER: Command not recognized...\n";
-            cout << "DEBUGGER: ENTER to continue, 'P' for PEAK \n";
-            getline(cin, command);
+    string temp;
+    vector<string> ans;
+    for (int i = 0; i < sentence.size();i++){
+        if(sentence[i]==' '){
+            ans.emplace_back(temp);
+            temp.clear();
         }
+        else temp += sentence[i];
+    }
+    ans.emplace_back(temp);
+    return ans;
+}
+
+// python下Area::winners 到 c++下Area::activated 可参考 Brain::ComputeKnownActivations
+void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
+              std::vector<std::vector<std::string>> &dependencies){
+    using namespace std;
+    auto to_areas = mapping[area];
+    ProjectMap temp1;
+    temp1[area] = to_areas;
+    b.Project(temp1, NUM_STEPS, false);
+    auto this_word = b.getWord(LEX);
+    for(auto to_area : to_areas){
+        if(to_area==LEX) continue;
+        ProjectMap temp2;
+        temp2[to_area] = {LEX};
+        auto other_word = b.getWord(LEX);
+        vector<string> temp3 = {this_word, other_word, to_area};
+        dependencies.emplace_back(temp3);
+    }
+    for(auto to_area : to_areas){
+        if(to_area!=LEX) read_out(to_area, mapping, b, dependencies);
     }
 }
 
-void ParserDebugger::peak(){
+void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20, 
+	       int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2){
     using namespace std;
-    unordered_map<int, int> remove_map;
-    brain.disable_plasticity = true;
-    brain.save_winners = true;
+    EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
+    unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
+    vector<string> all_areas = AREAS;
+    vector<string> explicit_areas = EXPLICIT_AREAS;
+    ProjectMap readout_rules = ENGLISH_READOUT_RULES;
+    
+    {   //parserHelper
+        vector<string> words = split(sentence);
+        bool extreme_debug = false;
+        for(string word : words){
+            RuleSet lexeme = lexeme_dict[word];
+            b.activateWord(LEX, word);
+            if(verbose){
+                cout << "Activated word: " << word << endl;
+                // cout<<b.GetArea(LEX)
+            }
+            
+            for(Rule rule : lexeme.pre_rules){
+                b.applyRule(rule);
+            }
+
+            ProjectMap proj_map = b.getProjectMap();
+            for(const auto area : proj_map){
+                if(!proj_map[LEX].count(area.first)){
+                    b.GetArea(area.first).is_fixed = true;
+                    if(verbose) cout << "FIXED assembly bc not LEX->this area in: " << area.first;
+                }
+                else if(area.first!=LEX){
+                    b.GetArea(area.first).is_fixed = false;
+                    b.GetArea(area.first).activated.clear();
+                    if(verbose) cout << "ERASED assembly because LEX->this area in " << area.first;
+                }
+            }
+
+            proj_map = b.getProjectMap();
+            if(verbose){}
+
+            for (int i = 0; i < project_rounds;i++){
+                b.parse_project();
+            }
+
+            for(auto rule : lexeme.post_rules){
+                b.applyRule(rule);
+            }
+
+            if(debug){}
+        }
+
+        for(auto area : all_areas){
+            b.GetArea(area).is_fixed = false;
+        }
+
+        vector<vector<string>> dependencies;
+        if(readout_method==1){}
+        else if(readout_method==2){
+            auto activated_fibers = b.getActivatedFibers();
+            if(verbose){}
+            read_out(VERB, activated_fibers, b, dependencies);
+            cout << "Got dependencies: \n";
+            for (int i = 0; i < dependencies.size();i++){
+                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << '] ';
+            }
+        }
+    }
 }
 
 }  // namespace nemo

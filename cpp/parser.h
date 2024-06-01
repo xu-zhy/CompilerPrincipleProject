@@ -33,6 +33,7 @@ const std::string ADVERB = "ADVERB";
 // Fixed area stats for explicit areas
 const int LEX_SIZE = 20;
 const int DET_SIZE = 2;
+const int NUM_STEPS = 10;
 
 // Actions
 const std::string DISINHIBIT = "DISINHIBIT";
@@ -113,7 +114,6 @@ public:
   std::unordered_map<std::string, std::unordered_set<int>> area_states;
   // unchecked data type
   std::unordered_map<std::string, std::unordered_set<std::string>> activated_fibers; // ProjectMap
-  bool disable_plasticity, save_winners;
 
   ParserBrain(float p, float beta, float max_weight, uint32_t seed, 
               std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 
@@ -181,7 +181,7 @@ class ParserDebugger {
 };
 
 void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20, 
-	       int project_rounds=20, bool verbose=true, bool debug=false, int readout_method=2);
+	       int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2);
 
 }  // namespace nemo
 
