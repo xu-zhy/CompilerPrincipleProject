@@ -1,0 +1,10 @@
+reads
+writes
+cooks
+sings
+solves
+saw
+chases
+reveals
+play
+facing
