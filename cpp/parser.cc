@@ -208,7 +208,7 @@ ParserBrain::ParserBrain(float p, float beta, float max_weight, uint32_t seed,
         initialize_states();
 }
 
-// 356 add + discard
+// (s)356 add + discard
 void ParserBrain::initialize_states() {
     for (const auto& from_area : all_areas) {
         fiber_states[from_area] = {};
@@ -226,7 +226,7 @@ void ParserBrain::initialize_states() {
     }
 }
 
-// upper same
+// (s)upper same
 void ParserBrain::applyFiberRule(const FiberRule& rule) {
     if (rule.action == INHIBIT) {
         fiber_states[rule.area1][rule.area2].insert(rule.index);
@@ -237,7 +237,7 @@ void ParserBrain::applyFiberRule(const FiberRule& rule) {
     }
 }
 
-// upper same
+// (s)upper same
 void ParserBrain::applyAreaRule(const AreaRule& rule) {
     if (rule.action == INHIBIT) {
         area_states[rule.area].insert(rule.index);
@@ -292,7 +292,6 @@ ProjectMap ParserBrain::getProjectMap() {
                 if (area_states[area2].empty()) {
                     if (fiber_states[area1][area2].empty()) {
                         // (s)411 area_by_name winners? - Area::activated
-                        // 是否是 (!)empty?
                         if (areas_[area_by_name_[area1]].activated.empty()) {
                             proj_map[area1].insert(area2);
                         }
@@ -315,12 +314,18 @@ void ParserBrain::activateWord(const std::string& area_name, const std::string& 
     for (int i = 0; i < k; ++i) {
         area.activated.push_back(assembly_start + i); // 421 1d or 2d matrix?
     }
+    /*
     // brain.py 40 - 检查集合是否被冻结的参数
     // area.fix_assembly();
+
+    如果仅仅出现了 fix_assembly()，则只需设置 fixed_assembly；
+    如果前面出现了设置 area.activated 则需要按该函数的做法。
+
+    // (s)assembly_start? 使用 ReadAssembly 读取 index
+    */
     size_t assembly_index, overlap;
     ReadAssembly(area_name, assembly_index, overlap);
     ActivateArea(area_name, assembly_index);
-    // (s)assembly_start? 使用 ReadAssembly 读取 index？
 }
 
 
@@ -404,6 +409,16 @@ EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n,
     AddArea(PREP_P, non_LEX_n, non_LEX_k);
     AddArea(DET, non_LEX_n, DET_k);
     AddArea(ADVERB, non_LEX_n, non_LEX_k);
+
+    /*
+    增加 fibers 的部分
+    因为志勇发现 py 里在 brain 部分会添加，但是 cc 不会，因此此处手动添加全连接
+    */
+    for (const auto& from_area : AREAS) {
+        for (const auto& to_area : AREAS) {
+            AddFiber(from_area, to_area);
+        }
+    }
 
     /*
     brain.py 250 - update_plasticities 的逻辑: (new_beta 是新的更新率)
