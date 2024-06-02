@@ -48,7 +48,7 @@ class Brain {
 
   Area& AddArea(const std::string& name, uint32_t n, uint32_t k,
                 bool recurrent = true, bool is_explicit = false);
-  void Brain::AddStimulus(const std::string& name, uint32_t n, uint32_t k);
+  void AddStimulus(const std::string& name, uint32_t n, uint32_t k);
   void AddFiber(const std::string& from, const std::string& to,
                 bool bidirectional = false);
 
