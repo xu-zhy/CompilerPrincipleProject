@@ -502,6 +502,7 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
         if(to_area==LEX) continue;
         ProjectMap temp2;
         temp2[to_area] = {LEX};
+        b.Project(temp2, NUM_STEPS, false);
         auto other_word = b.getWord(LEX);
         vector<string> temp3 = {this_word, other_word, to_area};
         dependencies.emplace_back(temp3);
@@ -572,7 +573,7 @@ void parse(std::string sentence, float p, int LEX_k,
             auto activated_fibers = b.getActivatedFibers();
             if(verbose){}
             read_out(VERB, activated_fibers, b, dependencies);
-            cout << "Got dependencies: \n";
+            cout << "Got dependencies: ";
             for (int i = 0; i < dependencies.size();i++){
                 cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << "] ";
             }
