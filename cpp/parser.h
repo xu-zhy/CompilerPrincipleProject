@@ -91,7 +91,7 @@ RuleSet generic_preposition(int index);
 std::unordered_map<std::string, RuleSet> generateLexemeDict();
 
 // ProjectMap
-ProjectMap ENGLISH_READOUT_RULES = {
+const ProjectMap ENGLISH_READOUT_RULES = {
     {"VERB", {"LEX", "SUBJ", "OBJ", "PREP_P", "ADVERB", "ADJ"}},
     {"SUBJ", {"LEX", "DET", "ADJ", "PREP_P"}},
     {"OBJ", {"LEX", "DET", "ADJ", "PREP_P"}},

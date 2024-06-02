@@ -34,18 +34,22 @@ const std::vector<std::string> sentences = {
     // "the little girl saw a friendly cat"
 };
 
-class TestOneSentence: public ::testing::TestWithParam<std::string> {};
+// class TestOneSentence: public ::testing::TestWithParam<std::string> {};
 
-TEST_P(TestOneSentence, HandlesSentence) {
-    // std::string s = GetParam();
+// TEST_P(TestOneSentence, HandlesSentence) {
+//     // std::string s = GetParam();
+//     parse();
+//     // EXPECT_TRUE(CompareSet(dependency, expected));
+// }
+
+// INSTANTIATE_TEST_SUITE_P(
+//     ParserTest,
+//     TestOneSentence,
+//     ::testing::ValuesIn(sentences)
+// );
+
+TEST(ParserTest, OneSentence){
     parse();
-    // EXPECT_TRUE(CompareSet(dependency, expected));
 }
-
-INSTANTIATE_TEST_SUITE_P(
-    ParserTest,
-    TestOneSentence,
-    ::testing::ValuesIn(sentences)
-);
 
 } // namespace nemo
