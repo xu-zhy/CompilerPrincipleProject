@@ -26,8 +26,8 @@ ACC = "ACC"
 DAT = "DAT"
 
 # Fixed area stats for explicit areas
-LEX_SIZE = 20
-DET_SIZE = 2
+LEX_SIZE = 90
+DET_SIZE = 3
 
 # Actions
 DISINHIBIT = "DISINHIBIT"
@@ -662,8 +662,8 @@ class ReadoutMethod(Enum):
 
 
 
-def parse(sentence="the man saw a woman", language="English", p=0.1, LEX_k=20, 
-	project_rounds=20, verbose=True, debug=False, readout_method=ReadoutMethod.FIBER_READOUT):
+def parse(sentence="cats chase mice", language="English", p=0.1, LEX_k=20, 
+	project_rounds=20, verbose=False, debug=False, readout_method=ReadoutMethod.FIBER_READOUT):
 
 	if language == "English":
 		b = EnglishParserBrain(p, LEX_k=LEX_k, verbose=verbose)
@@ -753,8 +753,9 @@ def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug,
 	def read_out(area, mapping):
 		to_areas = mapping[area]
 		b.project({}, {area: to_areas})
+		# print(b.area_by_name[LEX].winners)
 		this_word = b.getWord(LEX)
-
+		# print(b.area_by_name[LEX].winners)
 		for to_area in to_areas:
 			if to_area == LEX:
 				continue

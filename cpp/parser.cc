@@ -538,11 +538,11 @@ void parse(std::string sentence, float p, int LEX_k,
             ProjectMap proj_map = b.getProjectMap();
             for(const auto area : proj_map){
                 if(!proj_map[LEX].count(area.first)){
-                    b.GetArea(area.first).is_fixed = true;
+                    b.GetArea(area.first).fixed_assembly = true;
                     if(verbose) cout << "FIXED assembly bc not LEX->this area in: " << area.first << endl;
                 }
                 else if(area.first!=LEX){
-                    b.GetArea(area.first).is_fixed = false;
+                    b.GetArea(area.first).fixed_assembly = false;
                     b.GetArea(area.first).activated.clear();
                     if(verbose) cout << "ERASED assembly because LEX->this area in " << area.first << endl;
                 }
@@ -563,7 +563,7 @@ void parse(std::string sentence, float p, int LEX_k,
         }
 
         for(auto area : all_areas){
-            b.GetArea(area).is_fixed = false;
+            b.GetArea(area).fixed_assembly = false;
         }
 
         vector<vector<string>> dependencies;

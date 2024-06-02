@@ -147,6 +147,7 @@ Area& Brain::AddArea(const std::string& name, uint32_t n, uint32_t k,
   if (is_explicit) {
     // 显式脑区是固定的，并且具有一组固定的激活神经元。
     areas_[area_i].support = n;
+    areas_[area_i].explicit_ = true;
   }
   area_by_name_[name] = area_i;
   area_name_.push_back(name);
@@ -321,7 +322,7 @@ void Brain::ActivateArea(const std::string& name, uint32_t assembly_index) {
   for (uint32_t i = 0; i < area.k; ++i) {
     area.activated[i] = offset + i;
   }
-  area.is_fixed = true;
+  area.fixed_assembly = true;
 }
 
 /**
@@ -359,7 +360,7 @@ void Brain::SimulateOneStep(bool update_plasticity) {
     if (log_level_ > 0) {
       printf(" into %s\n", area_name_[area_i].c_str());
     }
-    if (!to_area.is_fixed) {
+    if (!to_area.explicit_) {
       // 用于记录每个神经元的突触输入
       std::vector<Synapse> activations; 
       if (to_area.support > 0) {
@@ -406,6 +407,7 @@ void Brain::SimulateOneStep(bool update_plasticity) {
       }
       std::sort(new_activated[area_i].begin(), new_activated[area_i].end());
     } else {
+      // std::cout << area_name_[area_i] << " is fixed" << std::endl;
       new_activated[area_i] = to_area.activated;
     }
     if (update_plasticity) {
@@ -416,7 +418,8 @@ void Brain::SimulateOneStep(bool update_plasticity) {
   // 更新每个脑区的激活神经元
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
     Area& area = areas_[area_i];
-    if (!area.is_fixed) {
+    if (!area.explicit_) {
+      // std::cout << new_activated[area_i].size() << std::endl;
       std::swap(area.activated, new_activated[area_i]);
     }
   }
