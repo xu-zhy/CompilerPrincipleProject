@@ -338,24 +338,21 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 
 std::string ParserBrain::getWord(const std::string& area_name, double min_overlap) {
     auto& area = GetArea(area_name);
-    // 437 set(self.area_by_name[area_name].winners)
-    auto& activated = area.activated;
+    // (s)437 set(self.area_by_name[area_name].winners)
+    const std::vector<uint32_t>& activated = area.activated;
     if (activated.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);
     int area_k = area.k;
     int threshold = min_overlap * area_k;
     for (const auto& pair : lexeme_dict) {
-        const std::string& word = pair.first; // index
+        const std::string word = pair.first;
         int word_index = pair.second.index;
         int word_assembly_start = word_index * area_k;
         int word_assembly_end = word_assembly_start + area_k;
-        int count = 0;
-        for (int i = word_assembly_start; i < word_assembly_end; ++i) {
-            if (std::find(activated.begin(), activated.end(), i) != activated.end()) {
-                ++count;
-            }
-        }
-        if (count >= threshold) { // len - 长度是否正确
+        std::vector<uint32_t> word_assembly;
+        for (int i = word_assembly_start; i < word_assembly_end; ++i)
+            word_assembly.push_back(i);
+        if (NumCommon(activated, word_assembly) >= threshold) { // len - 长度是否正确
             return word;
         }
     }
@@ -453,17 +450,17 @@ std::string EnglishParserBrain::getWord(const std::string& area_name, double min
         return word;
     }
     if (word.empty() && area_name == DET) {
-        // parser.py 548 set(self.area_by_name[area_name].winners)
-        auto& activated = GetArea(area_name).activated;
+        // (s)parser.py 548 set(self.area_by_name[area_name].winners)
+        const std::vector<uint32_t>& activated = GetArea(area_name).activated;
         auto area_k = GetArea(area_name).k;
         double threshold = min_overlap * area_k;
         int nodet_index = DET_SIZE - 1;
         int nodet_assembly_start = nodet_index * area_k;
-        std::unordered_set<int> nodet_assembly; // 553 int
-        for (int i = nodet_assembly_start; i < nodet_assembly_start + area_k; ++i) {
-            nodet_assembly.insert(i);
-        }
-        if (activated.size() > threshold && std::includes(activated.begin(), activated.end(), nodet_assembly.begin(), nodet_assembly.end())) {
+        int nodet_assembly_end = nodet_assembly_start + area_k;
+        std::vector<uint32_t> nodet_assembly;
+        for (int i = nodet_assembly_start; i < nodet_assembly_end; ++i)
+            nodet_assembly.push_back(i);
+        if (NumCommon(activated, nodet_assembly) > threshold) {
             return "<null-det>";
         }
     }
@@ -513,7 +510,7 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
 }
 
 void parse(std::string sentence, float p, int LEX_k, 
-	       int project_rounds, bool verbose, bool debug, int readout_method){
+	       bool verbose, bool debug, int readout_method){
     using namespace std;
     EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
     unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
@@ -552,9 +549,7 @@ void parse(std::string sentence, float p, int LEX_k,
             proj_map = b.getProjectMap();
             if(verbose){}
 
-            for (int i = 0; i < project_rounds;i++){
-                b.parse_project();
-            }
+            b.parse_project();
 
             for(auto rule : lexeme.post_rules){
                 b.applyRule(rule);
@@ -577,6 +572,7 @@ void parse(std::string sentence, float p, int LEX_k,
             for (int i = 0; i < dependencies.size();i++){
                 cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << "] ";
             }
+            std::cout << "\n";
         }
     }
 }

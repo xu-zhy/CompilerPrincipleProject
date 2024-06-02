@@ -15,6 +15,7 @@
 #include <exception>
 #include <stdexcept>
 #include <algorithm>
+#include "brain_util.h"
 
 
 namespace nemo {
@@ -33,7 +34,7 @@ const std::string ADVERB = "ADVERB";
 // Fixed area stats for explicit areas
 const int LEX_SIZE = 20;
 const int DET_SIZE = 2;
-const int NUM_STEPS = 10;
+const int NUM_STEPS = 100;
 
 // Actions
 const std::string DISINHIBIT = "DISINHIBIT";
@@ -181,7 +182,7 @@ class ParserDebugger {
 };
 
 void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20, 
-	       int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2);
+	      bool verbose=false, bool debug=false, int readout_method=2);
 
 }  // namespace nemo
 
