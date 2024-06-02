@@ -113,6 +113,20 @@ void SelectTopK(std::vector<Synapse>& activations, uint32_t k) {
 
 }  // namespace
 
+void Area::Print(std::string name) {
+  std::cout << "Area[" << name << "]:\n";
+  std::cout << "n:" << n << "\n";
+  std::cout << "k:" << k << "\n";
+  std::cout << "support:" << support << "\n";
+  std::cout << "explicit:" << explicit_ << "\n";
+  std::cout << " fixed_assembly:" << fixed_assembly << "\n";
+  std::cout << " activated: [";
+  for(auto i : activated){
+      std::cout << i << ' ';
+  }
+  std::cout << "]\n";
+}
+
 /**
  * @brief 大脑构造函数。初始化为一个无效脑区。
  * 

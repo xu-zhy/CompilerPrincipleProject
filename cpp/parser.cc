@@ -261,7 +261,7 @@ bool ParserBrain::applyRule(const Rule& rule) {
 void ParserBrain::parse_project() {
     auto project_map = getProjectMap();
     remember_fibers(project_map);
-    Brain::Project(project_map, NUM_STEPS); // 超参数 NUM_STEPS
+    Brain::Project(project_map, 1); // 超参数 NUM_STEPS
 }
 
 
@@ -292,10 +292,10 @@ ProjectMap ParserBrain::getProjectMap() {
                 if (area_states[area2].empty()) {
                     if (fiber_states[area1][area2].empty()) {
                         // (s)411 area_by_name winners? - Area::activated
-                        if (areas_[area_by_name_[area1]].activated.empty()) {
+                        if (!areas_[area_by_name_[area1]].activated.empty()) {
                             proj_map[area1].insert(area2);
                         }
-                        if (areas_[area_by_name_[area2]].activated.empty()) {
+                        if (!areas_[area_by_name_[area2]].activated.empty()) {
                             proj_map[area2].insert(area2);
                         }
                     }
@@ -509,7 +509,7 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     }
 }
 
-void parse(std::string sentence, float p, int LEX_k, 
+void parse(std::string sentence, float p, int LEX_k, int project_rounds,
 	       bool verbose, bool debug, int readout_method){
     using namespace std;
     EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
@@ -526,7 +526,9 @@ void parse(std::string sentence, float p, int LEX_k,
             b.activateWord(LEX, word);
             if(verbose){
                 cout << "Activated word: " << word << endl;
-                // cout<<b.GetArea(LEX)
+                auto area = b.GetArea(LEX);
+                // 打印 area 的 activated
+                area.Print("LEX");
             }
             
             for(Rule rule : lexeme.pre_rules){
@@ -549,7 +551,19 @@ void parse(std::string sentence, float p, int LEX_k,
             proj_map = b.getProjectMap();
             if(verbose){}
 
-            b.parse_project();
+            for (int i = 0; i < project_rounds;i++){
+                b.parse_project();
+                // proj_map = b.getProjectMap();
+                // cout << "Project map: ";
+                // for(auto area : proj_map){
+                //     cout << area.first << ": ";
+                //     for(auto to_area : area.second){
+                //         cout << to_area << ", ";
+                //     }
+                //     cout << endl;
+                // }
+                // return;
+            }
 
             for(auto rule : lexeme.post_rules){
                 b.applyRule(rule);

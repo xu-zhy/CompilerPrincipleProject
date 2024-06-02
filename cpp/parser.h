@@ -182,7 +182,7 @@ class ParserDebugger {
 };
 
 void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20, 
-	      bool verbose=false, bool debug=false, int readout_method=2);
+	      int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2);
 
 }  // namespace nemo
 
