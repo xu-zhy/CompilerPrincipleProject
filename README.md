@@ -5,6 +5,12 @@
 1. 修改了 brain.h 的 ```typedef std::unordered_map<std::string, std::unordered_set<std::string>> ProjectMap;``` 部分的定义，将原先的 map 和 vector 改成 un_map/set 来符合 python 写法。
 2. 修改了 brain_test.cc 的 AllAreas 和 Project 函数，将 map/set 转化成对应的 unordered 形式
 3. 修改了 void Brain::AddStimulus(const std::string& name, uint32_t k) 为 void Brain::AddStimulus(const std::string& name, uint32_t n, uint32_t k) 
+4. fix_assembly 的逻辑问题：在 Area 修改 is_fixed 为 explicit_ 和 fix_assembly。
+AddArea 函数的参数如果 is_explicit 为true，增加 areas_[area_i].explicit_ = true。
+SimulateOneStep 函数两个 if(!to_area.is_fix) 修改为 if(!to_area.explicit)。
+ActivateArea 函数最后的修改为 area.fixed_assembly = true。
+
+
 
 # TODO
 > 目前的任务和未来的计划
