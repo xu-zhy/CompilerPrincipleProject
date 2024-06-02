@@ -197,11 +197,11 @@ std::unordered_map<std::string, RuleSet> generateLexemeDict() {
 
 
 ParserBrain::ParserBrain(float p, float beta, float max_weight, uint32_t seed,
-    std::unordered_map<std::string, RuleSet> lexeme_dict = {}, 
-    std::vector<std::string> all_areas = {}, 
-    std::vector<std::string> recurrent_areas = {}, 
-    std::vector<std::string> initial_areas = {}, 
-    ProjectMap readout_rules = {})
+    std::unordered_map<std::string, RuleSet> lexeme_dict, 
+    std::vector<std::string> all_areas, 
+    std::vector<std::string> recurrent_areas, 
+    std::vector<std::string> initial_areas, 
+    ProjectMap readout_rules)
     : Brain(p, beta, max_weight, seed), lexeme_dict(lexeme_dict), 
     all_areas(all_areas), recurrent_areas(recurrent_areas), 
     initial_areas(initial_areas), readout_rules(readout_rules) {
@@ -382,10 +382,10 @@ std::unordered_map<std::string, std::unordered_set<std::string>> ParserBrain::ge
 }
 
 
-EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n = 10000, 
-    int non_LEX_k = 100, int LEX_k = 20, double default_beta = 0.2, 
-    double LEX_beta = 1.0, double recurrent_beta = 0.05, 
-    double interarea_beta = 0.5, bool verbose = false)
+EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n, 
+    int non_LEX_k, int LEX_k, double default_beta, 
+    double LEX_beta, double recurrent_beta, 
+    double interarea_beta, bool verbose)
     : ParserBrain(p, default_beta, 10000.0, 0, // (s)max_weight and seed
     generateLexemeDict(), AREAS, RECURRENT_AREAS, 
     {LEX, SUBJ, VERB}, ENGLISH_READOUT_RULES),
@@ -506,8 +506,8 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     }
 }
 
-void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20, 
-	       int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2){
+void parse(std::string sentence, float p, int LEX_k, 
+	       int project_rounds, bool verbose, bool debug, int readout_method){
     using namespace std;
     EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
     unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
