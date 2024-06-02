@@ -261,17 +261,21 @@ bool ParserBrain::applyRule(const Rule& rule) {
 void ParserBrain::parse_project() {
     auto project_map = getProjectMap();
     remember_fibers(project_map);
-    Brain::Project(project_map, NUM_STEPS); // 超参数 debug_steps
+    Brain::Project(project_map, NUM_STEPS); // 超参数 NUM_STEPS
 }
 
-// 395 update
+
+/*
+// parser.py 395 update
+用于 readout 部分的纤维束激活，该部分保存所有激活过的纤维束
+*/
 void ParserBrain::remember_fibers(const ProjectMap& project_map) {
     for (const auto& pair : project_map) {
         activated_fibers[pair.first].insert(pair.second.begin(), pair.second.end());
     }
 }
 
-// 397
+// parser.py 397
 bool ParserBrain::recurrent(const std::string& area) { 
     return (std::find(recurrent_areas.begin(), recurrent_areas.end(), area) != recurrent_areas.end());
 }
@@ -313,9 +317,10 @@ void ParserBrain::activateWord(const std::string& area_name, const std::string& 
     }
     // brain.py 40 - 检查集合是否被冻结的参数
     // area.fix_assembly();
-    // assembly_start?
-    ActivateArea(area_name, assembly_start);
-    // 使用 ReadAssembly 读取 index？
+    size_t assembly_index, overlap;
+    ReadAssembly(area_name, assembly_index, overlap);
+    ActivateArea(area_name, assembly_index);
+    // (s)assembly_start? 使用 ReadAssembly 读取 index？
 }
 
 
@@ -326,8 +331,10 @@ void ParserBrain::activateIndex(const std::string& area_name, int index) {
     for (int i = 0; i < k; ++i) {
         area.activated.push_back(assembly_start + i);
     }
-    // assembly_start?
-    ActivateArea(area_name, assembly_start);
+    // (s)assembly_start?
+    size_t assembly_index, overlap;
+    ReadAssembly(area_name, assembly_index, overlap);
+    ActivateArea(area_name, assembly_index);
 }
 
 
@@ -337,10 +344,8 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 
 
 std::string ParserBrain::getWord(const std::string& area_name, double min_overlap = 0.7) {
-    // auto& winners = area_by_name_[area_name].winners; // ori
     auto& area = GetArea(area_name);
     auto& activated = area.activated;
-    // 435 empty == not 吗？
     if (activated.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);
     int area_k = area.k;
@@ -391,27 +396,41 @@ EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n = 10000,
     AddStimulus(LEX, LEX_k);
 
     int DET_k = LEX_k;
-    AddArea(SUBJ, non_LEX_n, non_LEX_k, default_beta);
-    AddArea(OBJ, non_LEX_n, non_LEX_k, default_beta);
-    AddArea(VERB, non_LEX_n, non_LEX_k, default_beta);
-    AddArea(ADJ, non_LEX_n, non_LEX_k, default_beta);
-    AddArea(PREP, non_LEX_n, non_LEX_k, default_beta);
-    AddArea(PREP_P, non_LEX_n, non_LEX_k, default_beta);
-    AddArea(DET, non_LEX_n, DET_k, default_beta);
-    AddArea(ADVERB, non_LEX_n, non_LEX_k, default_beta);
+    AddArea(SUBJ, non_LEX_n, non_LEX_k);
+    AddArea(OBJ, non_LEX_n, non_LEX_k);
+    AddArea(VERB, non_LEX_n, non_LEX_k);
+    AddArea(ADJ, non_LEX_n, non_LEX_k);
+    AddArea(PREP, non_LEX_n, non_LEX_k);
+    AddArea(PREP_P, non_LEX_n, non_LEX_k);
+    AddArea(DET, non_LEX_n, DET_k);
+    AddArea(ADVERB, non_LEX_n, non_LEX_k);
 
-    std::unordered_map<std::string, std::vector<std::pair<std::string, double>>> custom_plasticities;
-    for (const auto& area : RECURRENT_AREAS) { // 525 append
-        custom_plasticities[LEX].emplace_back(area, LEX_beta);
-        custom_plasticities[area].emplace_back(LEX, LEX_beta);
-        custom_plasticities[area].emplace_back(area, recurrent_beta);
-        for (const auto& other_area : RECURRENT_AREAS) {
-            if (other_area == area) continue;
-            custom_plasticities[area].emplace_back(other_area, interarea_beta);
-        }
-    }
-    // ?
-    // update_plasticities(custom_plasticities);
+    /*
+    brain.py 250 - update_plasticities 的逻辑: (new_beta 是新的更新率)
+    custom_plasticities consists of area1: list[ (area2, new_beta) ], 
+    represents new plasticity FROM area2 INTO area1.
+
+    Brain 的 UpdatePlasticity() 是 private 成员，与 python 的基本思路不同，
+    而且 const float beta_ 更新率是不可变的，因此我好像不用实现这一部分？
+    因此我按照 python 写法更新 beta
+    */
+    // std::unordered_map<std::string, std::vector<std::pair<std::string, double>>> custom_plasticities;
+    // for (const auto& area : RECURRENT_AREAS) { // 525 append
+    //     custom_plasticities[LEX].emplace_back(area, LEX_beta);
+    //     custom_plasticities[area].emplace_back(LEX, LEX_beta);
+    //     custom_plasticities[area].emplace_back(area, recurrent_beta);
+    //     for (const auto& other_area : RECURRENT_AREAS) {
+    //         if (other_area == area) continue;
+    //         custom_plasticities[area].emplace_back(other_area, interarea_beta);
+    //     }
+    // }
+
+    // for (const auto& entry : custom_plasticities) {
+    //     // entry - to_area, update_rules
+    //     for (const auto& subentry : entry.second) {
+    //         // subentry - from_area, new_beta
+    //     }
+    // }
 }
 
 
