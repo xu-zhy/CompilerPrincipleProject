@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
 namespace nemo {
 
@@ -48,8 +48,8 @@ const std::vector<std::string> sentences = {
 //     ::testing::ValuesIn(sentences)
 // );
 
-TEST(ParserTest, OneSentence){
-    parse();
-}
-
 } // namespace nemo
+
+int main(){
+    nemo::parse();
+}
