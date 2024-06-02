@@ -308,12 +308,6 @@ ProjectMap ParserBrain::getProjectMap() {
 
 
 void ParserBrain::activateWord(const std::string& area_name, const std::string& word) {
-    auto &area = GetArea(area_name);
-    auto k = area.k;
-    auto assembly_start = lexeme_dict[word].index * k; // (s)420 index
-    for (int i = 0; i < k; ++i) {
-        area.activated.push_back(assembly_start + i); // 421 1d or 2d matrix?
-    }
     /*
     // brain.py 40 - 检查集合是否被冻结的参数
     // area.fix_assembly();
@@ -323,23 +317,17 @@ void ParserBrain::activateWord(const std::string& area_name, const std::string& 
 
     // (s)assembly_start? 使用 ReadAssembly 读取 index
     */
-    size_t assembly_index, overlap;
-    ReadAssembly(area_name, assembly_index, overlap);
-    ActivateArea(area_name, assembly_index);
+   
+    // size_t assembly_index, overlap;
+    // ReadAssembly(area_name, assembly_index, overlap);
+
+    ActivateArea(area_name, Brain::area_by_name_[word]);
 }
 
 
 void ParserBrain::activateIndex(const std::string& area_name, int index) {
-    auto& area = GetArea(area_name);
-    int k = area.k;
-    int assembly_start = index * k;
-    for (int i = 0; i < k; ++i) {
-        area.activated.push_back(assembly_start + i);
-    }
-    // (s)assembly_start?
-    size_t assembly_index, overlap;
-    ReadAssembly(area_name, assembly_index, overlap);
-    ActivateArea(area_name, assembly_index);
+    // upper same
+    ActivateArea(area_name, index);
 }
 
 
@@ -350,6 +338,7 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 
 std::string ParserBrain::getWord(const std::string& area_name, double min_overlap) {
     auto& area = GetArea(area_name);
+    // 437 set(self.area_by_name[area_name].winners)
     auto& activated = area.activated;
     if (activated.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);
@@ -464,6 +453,7 @@ std::string EnglishParserBrain::getWord(const std::string& area_name, double min
         return word;
     }
     if (word.empty() && area_name == DET) {
+        // parser.py 548 set(self.area_by_name[area_name].winners)
         auto& activated = GetArea(area_name).activated;
         auto area_k = GetArea(area_name).k;
         double threshold = min_overlap * area_k;
