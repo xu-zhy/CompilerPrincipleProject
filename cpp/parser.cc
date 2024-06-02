@@ -343,7 +343,7 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 }
 
 
-std::string ParserBrain::getWord(const std::string& area_name, double min_overlap = 0.7) {
+std::string ParserBrain::getWord(const std::string& area_name, double min_overlap) {
     auto& area = GetArea(area_name);
     auto& activated = area.activated;
     if (activated.empty())
@@ -443,7 +443,7 @@ ProjectMap EnglishParserBrain::getProjectMap() {
 }
 
 
-std::string EnglishParserBrain::getWord(const std::string& area_name, double min_overlap = 0.7) {
+std::string EnglishParserBrain::getWord(const std::string& area_name, double min_overlap) {
     auto word = ParserBrain::getWord(area_name, min_overlap);
     if (!word.empty()) {
         return word;
