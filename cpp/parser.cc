@@ -569,7 +569,7 @@ void parse(std::string sentence, float p, int LEX_k,
             read_out(VERB, activated_fibers, b, dependencies);
             cout << "Got dependencies: \n";
             for (int i = 0; i < dependencies.size();i++){
-                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << '] ';
+                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << "] ";
             }
         }
     }
