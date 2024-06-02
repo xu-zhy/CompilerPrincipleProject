@@ -165,8 +165,8 @@ Area& Brain::AddArea(const std::string& name, uint32_t n, uint32_t k,
  * @param name: 脑区名称
  * @param k: 激活的神经元数量
  */
-void Brain::AddStimulus(const std::string& name, uint32_t k) {
-  AddArea(name, k, k, /*recurrent=*/false, /*is_explicit=*/true);
+void Brain::AddStimulus(const std::string& name, uint32_t n, uint32_t k) {
+  AddArea(name, n, k, /*recurrent=*/false, /*is_explicit=*/true);
   ActivateArea(name, 0);
 }
 

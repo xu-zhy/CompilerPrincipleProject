@@ -317,11 +317,11 @@ void ParserBrain::activateWord(const std::string& area_name, const std::string& 
 
     // (s)assembly_start? 使用 ReadAssembly 读取 index
     */
-   
+
     // size_t assembly_index, overlap;
     // ReadAssembly(area_name, assembly_index, overlap);
 
-    ActivateArea(area_name, Brain::area_by_name_[word]);
+    ActivateArea(area_name, lexeme_dict[word].index);
 }
 
 
@@ -387,7 +387,7 @@ EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n,
     int LEX_n = LEX_SIZE * LEX_k;
     // (s) parser.py 508 add_explicit_area 添加激活的脑区
     // AddArea(LEX, LEX_n, LEX_k, default_beta);
-    AddStimulus(LEX, LEX_k);
+    AddStimulus(LEX, LEX_n, LEX_k);
 
     int DET_k = LEX_k;
     AddArea(SUBJ, non_LEX_n, non_LEX_k);
@@ -539,12 +539,12 @@ void parse(std::string sentence, float p, int LEX_k,
             for(const auto area : proj_map){
                 if(!proj_map[LEX].count(area.first)){
                     b.GetArea(area.first).is_fixed = true;
-                    if(verbose) cout << "FIXED assembly bc not LEX->this area in: " << area.first;
+                    if(verbose) cout << "FIXED assembly bc not LEX->this area in: " << area.first << endl;
                 }
                 else if(area.first!=LEX){
                     b.GetArea(area.first).is_fixed = false;
                     b.GetArea(area.first).activated.clear();
-                    if(verbose) cout << "ERASED assembly because LEX->this area in " << area.first;
+                    if(verbose) cout << "ERASED assembly because LEX->this area in " << area.first << endl;
                 }
             }
 

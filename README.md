@@ -2,9 +2,9 @@
 > 如果进行了重要更改，需要在此写清时间线和内容，例如对非 parser 代码的更改
 ---
 
-+ 5.30
 1. 修改了 brain.h 的 ```typedef std::unordered_map<std::string, std::unordered_set<std::string>> ProjectMap;``` 部分的定义，将原先的 map 和 vector 改成 un_map/set 来符合 python 写法。
 2. 修改了 brain_test.cc 的 AllAreas 和 Project 函数，将 map/set 转化成对应的 unordered 形式
+3. 修改了 void Brain::AddStimulus(const std::string& name, uint32_t k) 为 void Brain::AddStimulus(const std::string& name, uint32_t n, uint32_t k) 
 
 # TODO
 > 目前的任务和未来的计划
