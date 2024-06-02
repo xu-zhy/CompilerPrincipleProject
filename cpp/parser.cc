@@ -569,7 +569,7 @@ void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20,
             read_out(VERB, activated_fibers, b, dependencies);
             cout << "Got dependencies: \n";
             for (int i = 0; i < dependencies.size();i++){
-                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << '] ';
+                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << "] ";
             }
         }
     }

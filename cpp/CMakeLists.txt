@@ -17,16 +17,17 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 add_executable(
-  brain_test
-  brain_test.cc
+  parser_test
+  parser_test.cc
   brain.cc
   brain.h
-  brain_util.h
+  parser.cc
+  parser.h
 )
 target_link_libraries(
-  brain_test
+  parser_test
   GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(brain_test)
+gtest_discover_tests(parser_test)
