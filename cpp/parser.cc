@@ -261,7 +261,7 @@ bool ParserBrain::applyRule(const Rule& rule) {
 void ParserBrain::parse_project() {
     auto project_map = getProjectMap();
     remember_fibers(project_map);
-    Brain::Project(project_map, step_); // (s)Brain::step_
+    Brain::Project(project_map, debug_steps); // 超参数 debug_steps
 }
 
 // 395 update

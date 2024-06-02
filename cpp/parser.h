@@ -33,6 +33,7 @@ const std::string ADVERB = "ADVERB";
 // Fixed area stats for explicit areas
 const int LEX_SIZE = 20;
 const int DET_SIZE = 2;
+const int debug_steps = 10;
 
 // Actions
 const std::string DISINHIBIT = "DISINHIBIT";
