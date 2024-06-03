@@ -512,7 +512,8 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
 void parse(std::string sentence, float p, int LEX_k, int project_rounds,
 	       bool verbose, bool debug, int readout_method){
     using namespace std;
-    EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
+    // EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
+    EnglishParserBrain b(p, 10000, 100, LEX_k, 0.2, 1.0, 0.05, 0.5, verbose);
     unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
     vector<string> all_areas = AREAS;
     vector<string> explicit_areas = EXPLICIT_AREAS;
@@ -580,7 +581,16 @@ void parse(std::string sentence, float p, int LEX_k, int project_rounds,
         if(readout_method==1){}
         else if(readout_method==2){
             auto activated_fibers = b.getActivatedFibers();
-            if(verbose){}
+            if(verbose){
+                cout << "Got activated fibers: ";
+                for(auto fiber : activated_fibers){
+                    cout << fiber.first << ": ";
+                    for(auto to_area : fiber.second){
+                        cout << to_area << ", ";
+                    }
+                    cout << endl;
+                } 
+            }
             read_out(VERB, activated_fibers, b, dependencies);
             cout << "Got dependencies: ";
             for (int i = 0; i < dependencies.size();i++){
