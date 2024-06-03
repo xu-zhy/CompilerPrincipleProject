@@ -115,11 +115,11 @@ void SelectTopK(std::vector<Synapse>& activations, uint32_t k) {
 
 void Area::Print(std::string name) {
   std::cout << "Area[" << name << "]:\n";
-  std::cout << "n:" << n << "\n";
-  std::cout << "k:" << k << "\n";
-  std::cout << "support:" << support << "\n";
-  std::cout << "explicit:" << explicit_ << "\n";
-  std::cout << " fixed_assembly:" << fixed_assembly << "\n";
+//   std::cout << "n:" << n << "\n";
+//   std::cout << "k:" << k << "\n";
+//   std::cout << "support:" << support << "\n";
+//   std::cout << "explicit:" << explicit_ << "\n";
+//   std::cout << " fixed_assembly:" << fixed_assembly << "\n";
   std::cout << " activated: [";
   for(auto i : activated){
       std::cout << i << ' ';
@@ -356,38 +356,37 @@ void Brain::SimulateOneStep(bool update_plasticity) {
   // 遍历每个脑区
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
     Area& to_area = areas_[area_i];
-    uint32_t total_activated = 0;
-    // 遍历该脑区的每个输入 fiber
-    for (uint32_t fiber_i : incoming_fibers_[to_area.index]) {
-      const Fiber& fiber = fibers_[fiber_i];
-      const uint32_t num_activated = areas_[fiber.from_area].activated.size();
-      if (!fiber.is_active || num_activated == 0) continue;
-      if (log_level_ > 0) {
-        printf("%s%s", total_activated == 0 ? "Projecting " : ",",
-               area_name_[fiber.from_area].c_str());
-      }
-      total_activated += num_activated;
-    }
-    if (total_activated == 0) {
-      continue;
-    }
+    
     if (log_level_ > 0) {
       printf(" into %s\n", area_name_[area_i].c_str());
     }
-    if (!to_area.explicit_) {
+    if (!to_area.fixed_assembly) {
       // 用于记录每个神经元的突触输入
       std::vector<Synapse> activations; 
-      if (to_area.support > 0) {
+      // if (to_area.support > 0) {
         // 1. 计算已知的激活神经元输入，即论文 SI (synaptic input)
         ComputeKnownActivations(to_area, activations);
         // 2. 选择前 k 个激活神经元
         SelectTopK(activations, to_area.k);
-      }
+      // }
       // ????
-      if (activations.empty() ||
-          activations[to_area.k - 1].weight < total_activated) {
-        GenerateNewCandidates(to_area, total_activated, activations);
-        SelectTopK(activations, to_area.k);
+      if (!to_area.explicit_) {
+        uint32_t total_activated = 0;
+        // 遍历该脑区的每个输入 fiber
+        for (uint32_t fiber_i : incoming_fibers_[to_area.index]) {
+            const Fiber& fiber = fibers_[fiber_i];
+            const uint32_t num_activated = areas_[fiber.from_area].activated.size();
+            if (!fiber.is_active || num_activated == 0) continue;
+            if (log_level_ > 0) {
+                printf("%s%s", total_activated == 0 ? "Projecting " : ",",
+                    area_name_[fiber.from_area].c_str());
+            }
+            total_activated += num_activated;
+        }
+        if (total_activated != 0) {
+            GenerateNewCandidates(to_area, total_activated, activations);
+            SelectTopK(activations, to_area.k);
+        }
       }
       if (log_level_ > 1) {
         printf("[Area %s] Cutoff weight for best %d activations: %f\n",
@@ -432,7 +431,7 @@ void Brain::SimulateOneStep(bool update_plasticity) {
   // 更新每个脑区的激活神经元
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
     Area& area = areas_[area_i];
-    if (!area.explicit_) {
+    if (!area.fixed_assembly) {
       // std::cout << new_activated[area_i].size() << std::endl;
       std::swap(area.activated, new_activated[area_i]);
     }
