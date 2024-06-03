@@ -1,4 +1,5 @@
 #include "parser.h" 
+#include "lexemeDict.h"
 
 namespace nemo {
 
@@ -165,32 +166,32 @@ RuleSet generic_preposition(int index) {
   };
 }
 
-std::unordered_map<std::string, RuleSet> generateLexemeDict() {
-  std::unordered_map<std::string, RuleSet> lexemeDict;
+// std::unordered_map<std::string, RuleSet> generateLexemeDict() {
+//   std::unordered_map<std::string, RuleSet> lexemeDict;
 
-  lexemeDict["the"] = generic_determinant(0);
-  lexemeDict["a"] = generic_determinant(1);
-  lexemeDict["dogs"] = generic_noun(2);
-  lexemeDict["cats"] = generic_noun(3);
-  lexemeDict["mice"] = generic_noun(4);
-  lexemeDict["people"] = generic_noun(5);
-  lexemeDict["chase"] = generic_trans_verb(6);
-  lexemeDict["love"] = generic_trans_verb(7);
-  lexemeDict["bite"] = generic_trans_verb(8);
-  lexemeDict["of"] = generic_preposition(9);
-  lexemeDict["big"] = generic_adjective(10);
-  lexemeDict["bad"] = generic_adjective(11);
-  lexemeDict["run"] = generic_intrans_verb(12);
-  lexemeDict["fly"] = generic_intrans_verb(13);
-  lexemeDict["quickly"] = generic_adverb(14);
-  lexemeDict["in"] = generic_preposition(15);
-  lexemeDict["are"] = generic_copula(16);
-  lexemeDict["man"] = generic_noun(17);
-  lexemeDict["woman"] = generic_noun(18);
-  lexemeDict["saw"] = generic_trans_verb(19);
+//   lexemeDict["the"] = generic_determinant(0);
+//   lexemeDict["a"] = generic_determinant(1);
+//   lexemeDict["dogs"] = generic_noun(2);
+//   lexemeDict["cats"] = generic_noun(3);
+//   lexemeDict["mice"] = generic_noun(4);
+//   lexemeDict["people"] = generic_noun(5);
+//   lexemeDict["chase"] = generic_trans_verb(6);
+//   lexemeDict["love"] = generic_trans_verb(7);
+//   lexemeDict["bite"] = generic_trans_verb(8);
+//   lexemeDict["of"] = generic_preposition(9);
+//   lexemeDict["big"] = generic_adjective(10);
+//   lexemeDict["bad"] = generic_adjective(11);
+//   lexemeDict["run"] = generic_intrans_verb(12);
+//   lexemeDict["fly"] = generic_intrans_verb(13);
+//   lexemeDict["quickly"] = generic_adverb(14);
+//   lexemeDict["in"] = generic_preposition(15);
+//   lexemeDict["are"] = generic_copula(16);
+//   lexemeDict["man"] = generic_noun(17);
+//   lexemeDict["woman"] = generic_noun(18);
+//   lexemeDict["saw"] = generic_trans_verb(19);
 
-  return lexemeDict;
-}
+//   return lexemeDict;
+// }
 
 /*=================================TODO: ParserBrain=================================*/
 /*对应 parser.py 的 ParserBrain 和 EnglishParserBrain */
@@ -377,7 +378,7 @@ EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n,
     int non_LEX_k, int LEX_k, double default_beta, 
     double LEX_beta, double recurrent_beta, 
     double interarea_beta, bool verbose)
-    : ParserBrain(p, default_beta, 10000.0, 0, // (s)max_weight and seed
+    : ParserBrain(p, default_beta, 10000.0, 42, // (s)max_weight and seed
     generateLexemeDict(), AREAS, RECURRENT_AREAS, 
     {LEX, SUBJ, VERB}, ENGLISH_READOUT_RULES),
     verbose(verbose) {

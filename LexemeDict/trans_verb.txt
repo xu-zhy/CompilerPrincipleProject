@@ -5,6 +5,6 @@ sings
 solves
 saw
 chases
-reveals
 play
-facing
+has
+asked

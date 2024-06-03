@@ -29,15 +29,18 @@ def generate_pos_code():
         
 
 if __name__ == '__main__':
-    # lexemeDict = get_lexeme_dict()
-    # with open(os.path.join(cpp_dir, 'lexemeDict.h'), 'w') as f:
-    #     f.write('#include \"parser.h\"\n\n')
-    #     f.write('namespace nemo {\n\n')
-    #     f.write('std::unordered_map<std::string, RuleSet> generateLexemeDict() {\n')
-    #     f.write('  std::unordered_map<std::string, RuleSet> lexemeDict;\n\n')    
-    #     for lexeme in lexemeDict:
-    #         f.write('  lexemeDict["' + lexeme + '"] = ' + lexemeDict[lexeme] + ';\n')
-    #     f.write('\n  return lexemeDict;\n}\n')
-    #     f.write('\n}\n')
-    generate_pos_code()
+    lexemeDict = get_lexeme_dict()
+    lex_size=len(lexemeDict)
+    with open(os.path.join(cpp_dir, 'lexemeDict.h'), 'w') as f:
+        f.write('#include \"parser.h\"\n\n')
+        f.write('namespace nemo {\n\n')
+        f.write(f'const int LEX_SIZE = {lex_size};\n')
+        f.write('const int DET_SIZE = 3;\n\n')
+        f.write('std::unordered_map<std::string, RuleSet> generateLexemeDict() {\n')
+        f.write('  std::unordered_map<std::string, RuleSet> lexemeDict;\n\n')    
+        for lexeme in lexemeDict:
+            f.write('  lexemeDict["' + lexeme + '"] = ' + lexemeDict[lexeme] + ';\n')
+        f.write('\n  return lexemeDict;\n}\n')
+        f.write('\n}\n')
+    # generate_pos_code()
         

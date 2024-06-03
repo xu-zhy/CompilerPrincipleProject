@@ -17,7 +17,6 @@
 #include <algorithm>
 #include "brain_util.h"
 
-
 namespace nemo {
 
 // BrainAreas
@@ -32,8 +31,6 @@ const std::string ADJ = "ADJ";
 const std::string ADVERB = "ADVERB";
 
 // Fixed area stats for explicit areas
-const int LEX_SIZE = 20;
-const int DET_SIZE = 2;
 const int NUM_STEPS = 20;
 
 // Actions
