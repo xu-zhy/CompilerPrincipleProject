@@ -15,7 +15,7 @@
 #include <exception>
 #include <stdexcept>
 #include <algorithm>
-#include "brain_util.h"
+#include "parser_util.h"
 
 namespace nemo {
 
@@ -163,7 +163,7 @@ public:
   std::string getWord(const std::string& area_name, double min_overlap = 0.7);
 };
 
-void parse(std::string sentence="a man saw a woman", float p=0.1, int LEX_k=20, 
+std::set<std::vector<std::string>> parse(std::string sentence="a man saw a woman", float p=0.1, int LEX_k=20, 
 	      int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2);
 
 }  // namespace nemo

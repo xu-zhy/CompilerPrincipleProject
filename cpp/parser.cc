@@ -510,8 +510,8 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     }
 }
 
-void parse(std::string sentence, float p, int LEX_k, int project_rounds,
-	       bool verbose, bool debug, int readout_method){
+std::set<std::vector<std::string>> parse(std::string sentence, float p, int LEX_k, int project_rounds,
+	                                     bool verbose, bool debug, int readout_method){
     using namespace std;
     EnglishParserBrain b(p, 10000, 100, LEX_k, 0.2, 1.0, 0.05, 0.5, verbose);
     unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
@@ -582,11 +582,10 @@ void parse(std::string sentence, float p, int LEX_k, int project_rounds,
                 } 
             }
             read_out(VERB, activated_fibers, b, dependencies);
-            cout << "Got dependencies: ";
-            for (int i = 0; i < dependencies.size();i++){
-                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << "] ";
-            }
-            std::cout << "\n";
+            
+            set<vector<string>> dependency_set;
+            dependency_set.insert(dependencies.begin(), dependencies.end());
+            return dependency_set;
         }
     }
 }

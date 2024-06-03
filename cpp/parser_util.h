@@ -1,5 +1,5 @@
-#ifndef NEMO_BRAIN_UTIL_H_
-#define NEMO_BRAIN_UTIL_H_
+#ifndef NEMO_PARSER_UTIL_H_
+#define NEMO_PARSER_UTIL_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <set>
+#include <string>
 
 namespace nemo {
 
@@ -29,5 +31,14 @@ inline size_t NumCommon(const std::vector<uint32_t>& a_in,
   return c.size();
 }
 
+inline bool CompareDependency(const std::set<std::vector<std::string>>& a,
+                              const std::set<std::vector<std::string>>& b) {
+  if (a.size() != b.size()) {
+    return false;
+  }
+  return std::equal(a.begin(), a.end(), b.begin());
+
+}
+
 }  // namespace nemo
-#endif  // NEMO_BRAIN_UTIL_H_
+#endif  // NEMO_PARSER_UTIL_H_

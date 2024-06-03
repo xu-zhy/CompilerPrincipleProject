@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(my_project)
 
-# GoogleTest requires at least C++14
+# GoogleTest requires at least C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -23,6 +23,9 @@ add_executable(
   brain.h
   parser.cc
   parser.h
+  dependency.h
+  parser_util.h
+  lexemeDict.h
 )
 target_link_libraries(
   parser_test

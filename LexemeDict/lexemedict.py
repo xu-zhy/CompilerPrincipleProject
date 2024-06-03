@@ -12,7 +12,7 @@ cpp_dir = os.path.join(this_dir, '..', 'cpp')
 def get_lexeme_dict():
     lexemeDict = {}
     for filename in os.listdir(this_dir):
-        if filename == 'sentences.txt':
+        if filename == 'sentences.txt' or filename == 'dependency.txt':
             continue
         if filename.endswith('.txt'):
             with open(os.path.join(this_dir, filename), 'r') as f:

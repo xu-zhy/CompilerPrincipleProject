@@ -10,3 +10,4 @@ friendly
 sunny
 tall
 red
+small

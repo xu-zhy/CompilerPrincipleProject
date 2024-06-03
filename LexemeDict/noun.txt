@@ -33,3 +33,5 @@ teacher
 question
 student
 park
+game
+sky
