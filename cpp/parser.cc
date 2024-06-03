@@ -493,13 +493,21 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     auto to_areas = mapping[area];
     ProjectMap temp1;
     temp1[area] = to_areas;
-    b.Project(temp1, NUM_STEPS, false);
+    b.GetArea(LEX).Print("LEX");
+    b.GetArea(OBJ).Print("OBJ");
+    b.GetArea(SUBJ).Print("SUBJ");
+    b.GetArea(VERB).Print("VERB");
+    b.Project(temp1, 1, false);
+    b.GetArea(LEX).Print("LEX");
+    b.GetArea(OBJ).Print("OBJ");
+    b.GetArea(SUBJ).Print("SUBJ");
+    b.GetArea(VERB).Print("VERB");
     auto this_word = b.getWord(LEX);
     for(auto to_area : to_areas){
         if(to_area==LEX) continue;
         ProjectMap temp2;
         temp2[to_area] = {LEX};
-        b.Project(temp2, NUM_STEPS, false);
+        b.Project(temp2, 1, false);
         auto other_word = b.getWord(LEX);
         vector<string> temp3 = {this_word, other_word, to_area};
         dependencies.emplace_back(temp3);
@@ -554,16 +562,6 @@ void parse(std::string sentence, float p, int LEX_k, int project_rounds,
 
             for (int i = 0; i < project_rounds;i++){
                 b.parse_project();
-                // proj_map = b.getProjectMap();
-                // cout << "Project map: ";
-                // for(auto area : proj_map){
-                //     cout << area.first << ": ";
-                //     for(auto to_area : area.second){
-                //         cout << to_area << ", ";
-                //     }
-                //     cout << endl;
-                // }
-                // return;
             }
 
             for(auto rule : lexeme.post_rules){
