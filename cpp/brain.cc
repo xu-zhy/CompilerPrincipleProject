@@ -115,11 +115,11 @@ void SelectTopK(std::vector<Synapse>& activations, uint32_t k) {
 
 void Area::Print(std::string name) {
   std::cout << "Area[" << name << "]:\n";
-//   std::cout << "n:" << n << "\n";
-//   std::cout << "k:" << k << "\n";
-//   std::cout << "support:" << support << "\n";
-//   std::cout << "explicit:" << explicit_ << "\n";
-//   std::cout << " fixed_assembly:" << fixed_assembly << "\n";
+  std::cout << "n:" << n << "\n";
+  std::cout << "k:" << k << "\n";
+  std::cout << "support:" << support << "\n";
+  std::cout << "explicit:" << explicit_ << "\n";
+  std::cout << " fixed_assembly:" << fixed_assembly << "\n";
   std::cout << " activated: [";
   for(auto i : activated){
       std::cout << i << ' ';
@@ -352,41 +352,40 @@ void Brain::SimulateOneStep(bool update_plasticity) {
     printf("Step %u%s\n", step_, update_plasticity ? "" : " (readout)");
   }
   // 记录每个脑区新的激活神经元
+  std::unordered_set<uint32_t> to_update_areas;
   std::vector<std::vector<uint32_t>> new_activated(areas_.size());  
   // 遍历每个脑区
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
     Area& to_area = areas_[area_i];
-    
+    uint32_t total_activated = 0;
+    // 遍历该脑区的每个输入 fiber
+    for (uint32_t fiber_i : incoming_fibers_[to_area.index]) {
+        const Fiber& fiber = fibers_[fiber_i];
+        const uint32_t num_activated = areas_[fiber.from_area].activated.size();
+        if (!fiber.is_active || num_activated == 0) continue;
+        if (log_level_ > 0) {  
+            printf("%s%s", total_activated == 0 ? "Projecting " : ",",
+                area_name_[fiber.from_area].c_str());
+        }
+        total_activated += num_activated;
+    }
+    if(total_activated == 0){
+        to_update_areas.insert(area_i);
+        continue;
+    }
     if (log_level_ > 0) {
       printf(" into %s\n", area_name_[area_i].c_str());
     }
     if (!to_area.fixed_assembly) {
       // 用于记录每个神经元的突触输入
       std::vector<Synapse> activations; 
-      // if (to_area.support > 0) {
-        // 1. 计算已知的激活神经元输入，即论文 SI (synaptic input)
-        ComputeKnownActivations(to_area, activations);
-        // 2. 选择前 k 个激活神经元
-        SelectTopK(activations, to_area.k);
-      // }
-      // ????
+      // 1. 计算已知的激活神经元输入，即论文 SI (synaptic input)
+      ComputeKnownActivations(to_area, activations);
+      // 2. 选择前 k 个激活神经元
+      SelectTopK(activations, to_area.k);
       if (!to_area.explicit_) {
-        uint32_t total_activated = 0;
-        // 遍历该脑区的每个输入 fiber
-        for (uint32_t fiber_i : incoming_fibers_[to_area.index]) {
-            const Fiber& fiber = fibers_[fiber_i];
-            const uint32_t num_activated = areas_[fiber.from_area].activated.size();
-            if (!fiber.is_active || num_activated == 0) continue;
-            if (log_level_ > 0) {
-                printf("%s%s", total_activated == 0 ? "Projecting " : ",",
-                    area_name_[fiber.from_area].c_str());
-            }
-            total_activated += num_activated;
-        }
-        if (total_activated != 0) {
-            GenerateNewCandidates(to_area, total_activated, activations);
-            SelectTopK(activations, to_area.k);
-        }
+          GenerateNewCandidates(to_area, total_activated, activations);
+          SelectTopK(activations, to_area.k);
       }
       if (log_level_ > 1) {
         printf("[Area %s] Cutoff weight for best %d activations: %f\n",
@@ -431,7 +430,7 @@ void Brain::SimulateOneStep(bool update_plasticity) {
   // 更新每个脑区的激活神经元
   for (uint32_t area_i = 0; area_i < areas_.size(); ++area_i) {
     Area& area = areas_[area_i];
-    if (!area.fixed_assembly) {
+    if (!area.fixed_assembly && !to_update_areas.count(area_i)) {
       // std::cout << new_activated[area_i].size() << std::endl;
       std::swap(area.activated, new_activated[area_i]);
     }
@@ -510,7 +509,7 @@ void Brain::GenerateNewCandidates(const Area& to_area, uint32_t total_k,
                                   std::vector<Synapse>& activations) {
   // Compute the total number of neurons firing into this area.
   const uint32_t remaining_neurons = to_area.n - to_area.support;
-  if (remaining_neurons <= 2 * to_area.k) {
+  if (remaining_neurons <= to_area.k) {
     // Generate number of synapses for all remaining neurons directly from the
     // binomial(total_k, p_) distribution.
     std::binomial_distribution<> binom(total_k, p_);

@@ -343,7 +343,7 @@ std::string ParserBrain::getWord(const std::string& area_name, double min_overla
     if (activated.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);
     int area_k = area.k;
-    int threshold = min_overlap * area_k;
+    int threshold = min_overlap  * area_k;
     for (const auto& pair : lexeme_dict) {
         const std::string word = pair.first;
         int word_index = pair.second.index;
@@ -352,7 +352,7 @@ std::string ParserBrain::getWord(const std::string& area_name, double min_overla
         std::vector<uint32_t> word_assembly;
         for (int i = word_assembly_start; i < word_assembly_end; ++i)
             word_assembly.push_back(i);
-        if (NumCommon(activated, word_assembly) >= threshold) { // len - 长度是否正确
+        if (NumCommon(activated, word_assembly) >= threshold ) { // len - 长度是否正确
             return word;
         }
     }
@@ -493,15 +493,7 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     auto to_areas = mapping[area];
     ProjectMap temp1;
     temp1[area] = to_areas;
-    b.GetArea(LEX).Print("LEX");
-    b.GetArea(OBJ).Print("OBJ");
-    b.GetArea(SUBJ).Print("SUBJ");
-    b.GetArea(VERB).Print("VERB");
     b.Project(temp1, 1, false);
-    b.GetArea(LEX).Print("LEX");
-    b.GetArea(OBJ).Print("OBJ");
-    b.GetArea(SUBJ).Print("SUBJ");
-    b.GetArea(VERB).Print("VERB");
     auto this_word = b.getWord(LEX);
     for(auto to_area : to_areas){
         if(to_area==LEX) continue;
@@ -520,7 +512,6 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
 void parse(std::string sentence, float p, int LEX_k, int project_rounds,
 	       bool verbose, bool debug, int readout_method){
     using namespace std;
-    // EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
     EnglishParserBrain b(p, 10000, 100, LEX_k, 0.2, 1.0, 0.05, 0.5, verbose);
     unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
     vector<string> all_areas = AREAS;

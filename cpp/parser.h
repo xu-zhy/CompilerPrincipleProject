@@ -34,7 +34,7 @@ const std::string ADVERB = "ADVERB";
 // Fixed area stats for explicit areas
 const int LEX_SIZE = 20;
 const int DET_SIZE = 2;
-const int NUM_STEPS = 100;
+const int NUM_STEPS = 20;
 
 // Actions
 const std::string DISINHIBIT = "DISINHIBIT";
@@ -166,22 +166,7 @@ public:
   std::string getWord(const std::string& area_name, double min_overlap = 0.7);
 };
 
-
-class ParserDebugger {
- public:
-  ParserBrain& brain;
-  std::vector<std::string> all_areas;
-  std::vector<std::string> explicit_areas;
-
-  ParserDebugger(ParserBrain& brain, 
-                 const std::vector<std::string>& all_areas, 
-                 const std::vector<std::string>& explicit_areas);
-
-  void run();
-  void peak();
-};
-
-void parse(std::string sentence="cats chase mice", float p=0.1, int LEX_k=20, 
+void parse(std::string sentence="a man saw a woman", float p=0.1, int LEX_k=20, 
 	      int project_rounds=20, bool verbose=false, bool debug=false, int readout_method=2);
 
 }  // namespace nemo

@@ -22,7 +22,7 @@ struct Synapse {
 
 struct Area {
   Area(uint32_t index, uint32_t n, uint32_t k) : index(index), n(n), k(k) {}
-  void Print(std::string name) {}
+  void Print(std::string name);
 
   const uint32_t index;               // 脑区索引
   const uint32_t n;                   // 脑区的总神经元数量
