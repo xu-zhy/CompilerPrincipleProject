@@ -75,13 +75,15 @@ int main() {
         int len = nemo::WordCount(s);
 
         auto start = std::chrono::high_resolution_clock::now();
-        nemo::parse(s);
+        for(int j = 0; j < 100; j++){
+            nemo::parse(s);
+        }
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
 
         std::cout << "Testing: " << std::setw(50) << std::left << s
                   << "---- Time: " << std::fixed << std::setprecision(6)
-                  << (double)elapsed.count()/len << " seconds per word" << std::endl;
+                  << (double)elapsed.count()/(len * 100) << " seconds per word" << std::endl;
     }
 
     return 0;

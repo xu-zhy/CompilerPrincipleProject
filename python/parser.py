@@ -4,6 +4,7 @@ import numpy as np
 import pptree
 import json
 import copy
+import time
 
 from collections import namedtuple
 from collections import defaultdict
@@ -902,7 +903,13 @@ def main():
 		# "the girl saw a cat"
 	]
     for sentence in sentences:
+        start = time.time()
         parse(sentence=sentence)
+        end = time.time()
+        
+        # compute time taken per word
+        time_per_word = (end - start) / len(sentence.split(" "))
+        print("Time taken per word: " + str(time_per_word) + " seconds")
 
 if __name__ == "__main__":
     main()
