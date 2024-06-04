@@ -598,16 +598,7 @@ class EnglishParserBrain(ParserBrain):
 				custom_plasticities[area].append((other_area, interarea_beta))
 
 		self.update_plasticities(area_update_map=custom_plasticities)
-		
-		# print(self.all_areas)
-		# # print fiber_states in format: from_area -> to_area -> [indices]
 
-		# for from_area, to_areas in self.fiber_states.items():
-		# 	print("Fiber states from " + from_area, end=" ")
-		# 	for to_area, indices in to_areas.items():
-		# 		print("to " + to_area,end=" ")
-		# 		print(indices)
-  
 	def getProjectMap(self):
 		proj_map = ParserBrain.getProjectMap(self)
 		# "War of fibers"
