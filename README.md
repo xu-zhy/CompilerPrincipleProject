@@ -16,6 +16,7 @@
     cmake --build build
     cd build && ctest
     ```
+    > 使用 `ctest -V` 可查看每个句子的依赖解析结果
 * 性能测试
     ```shell
     cd performance
