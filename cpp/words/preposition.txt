@@ -1,6 +1,5 @@
 in
 outside
-on
 over
 around
 across

@@ -7,9 +7,6 @@ book
 bird
 apple
 problem
-ancient
-artifact
-world
 sun
 sea
 fence
@@ -21,7 +18,6 @@ yard
 boat
 market
 weather
-table
 breeze
 algorithm
 kitchen
@@ -30,7 +26,12 @@ lake
 food
 song
 children
-challenges
 trees
 mouse
-secret
+idea
+teacher
+question
+student
+park
+game
+sky

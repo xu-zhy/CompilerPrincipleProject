@@ -1,4 +1,5 @@
 #include "parser.h" 
+#include "lexemeDict.h"
 
 namespace nemo {
 
@@ -165,32 +166,32 @@ RuleSet generic_preposition(int index) {
   };
 }
 
-std::unordered_map<std::string, RuleSet> generateLexemeDict() {
-  std::unordered_map<std::string, RuleSet> lexemeDict;
+// std::unordered_map<std::string, RuleSet> generateLexemeDict() {
+//   std::unordered_map<std::string, RuleSet> lexemeDict;
 
-  lexemeDict["the"] = generic_determinant(0);
-  lexemeDict["a"] = generic_determinant(1);
-  lexemeDict["dogs"] = generic_noun(2);
-  lexemeDict["cats"] = generic_noun(3);
-  lexemeDict["mice"] = generic_noun(4);
-  lexemeDict["people"] = generic_noun(5);
-  lexemeDict["chase"] = generic_trans_verb(6);
-  lexemeDict["love"] = generic_trans_verb(7);
-  lexemeDict["bite"] = generic_trans_verb(8);
-  lexemeDict["of"] = generic_preposition(9);
-  lexemeDict["big"] = generic_adjective(10);
-  lexemeDict["bad"] = generic_adjective(11);
-  lexemeDict["run"] = generic_intrans_verb(12);
-  lexemeDict["fly"] = generic_intrans_verb(13);
-  lexemeDict["quickly"] = generic_adverb(14);
-  lexemeDict["in"] = generic_preposition(15);
-  lexemeDict["are"] = generic_copula(16);
-  lexemeDict["man"] = generic_noun(17);
-  lexemeDict["woman"] = generic_noun(18);
-  lexemeDict["saw"] = generic_trans_verb(19);
+//   lexemeDict["the"] = generic_determinant(0);
+//   lexemeDict["a"] = generic_determinant(1);
+//   lexemeDict["dogs"] = generic_noun(2);
+//   lexemeDict["cats"] = generic_noun(3);
+//   lexemeDict["mice"] = generic_noun(4);
+//   lexemeDict["people"] = generic_noun(5);
+//   lexemeDict["chase"] = generic_trans_verb(6);
+//   lexemeDict["love"] = generic_trans_verb(7);
+//   lexemeDict["bite"] = generic_trans_verb(8);
+//   lexemeDict["of"] = generic_preposition(9);
+//   lexemeDict["big"] = generic_adjective(10);
+//   lexemeDict["bad"] = generic_adjective(11);
+//   lexemeDict["run"] = generic_intrans_verb(12);
+//   lexemeDict["fly"] = generic_intrans_verb(13);
+//   lexemeDict["quickly"] = generic_adverb(14);
+//   lexemeDict["in"] = generic_preposition(15);
+//   lexemeDict["are"] = generic_copula(16);
+//   lexemeDict["man"] = generic_noun(17);
+//   lexemeDict["woman"] = generic_noun(18);
+//   lexemeDict["saw"] = generic_trans_verb(19);
 
-  return lexemeDict;
-}
+//   return lexemeDict;
+// }
 
 /*=================================TODO: ParserBrain=================================*/
 /*对应 parser.py 的 ParserBrain 和 EnglishParserBrain */
@@ -261,7 +262,7 @@ bool ParserBrain::applyRule(const Rule& rule) {
 void ParserBrain::parse_project() {
     auto project_map = getProjectMap();
     remember_fibers(project_map);
-    Brain::Project(project_map, NUM_STEPS); // 超参数 NUM_STEPS
+    Brain::Project(project_map, 1); // 超参数 NUM_STEPS
 }
 
 
@@ -292,10 +293,10 @@ ProjectMap ParserBrain::getProjectMap() {
                 if (area_states[area2].empty()) {
                     if (fiber_states[area1][area2].empty()) {
                         // (s)411 area_by_name winners? - Area::activated
-                        if (areas_[area_by_name_[area1]].activated.empty()) {
+                        if (!areas_[area_by_name_[area1]].activated.empty()) {
                             proj_map[area1].insert(area2);
                         }
-                        if (areas_[area_by_name_[area2]].activated.empty()) {
+                        if (!areas_[area_by_name_[area2]].activated.empty()) {
                             proj_map[area2].insert(area2);
                         }
                     }
@@ -338,24 +339,21 @@ std::string ParserBrain::interpretAssemblyAsString(const std::string& area_name)
 
 std::string ParserBrain::getWord(const std::string& area_name, double min_overlap) {
     auto& area = GetArea(area_name);
-    // 437 set(self.area_by_name[area_name].winners)
-    auto& activated = area.activated;
+    // (s)437 set(self.area_by_name[area_name].winners)
+    const std::vector<uint32_t>& activated = area.activated;
     if (activated.empty())
         throw std::runtime_error("Cannot get word because no assembly in " + area_name);
     int area_k = area.k;
-    int threshold = min_overlap * area_k;
+    int threshold = min_overlap  * area_k;
     for (const auto& pair : lexeme_dict) {
-        const std::string& word = pair.first; // index
+        const std::string word = pair.first;
         int word_index = pair.second.index;
         int word_assembly_start = word_index * area_k;
         int word_assembly_end = word_assembly_start + area_k;
-        int count = 0;
-        for (int i = word_assembly_start; i < word_assembly_end; ++i) {
-            if (std::find(activated.begin(), activated.end(), i) != activated.end()) {
-                ++count;
-            }
-        }
-        if (count >= threshold) { // len - 长度是否正确
+        std::vector<uint32_t> word_assembly;
+        for (int i = word_assembly_start; i < word_assembly_end; ++i)
+            word_assembly.push_back(i);
+        if (NumCommon(activated, word_assembly) >= threshold ) { // len - 长度是否正确
             return word;
         }
     }
@@ -380,7 +378,7 @@ EnglishParserBrain::EnglishParserBrain(float p, int non_LEX_n,
     int non_LEX_k, int LEX_k, double default_beta, 
     double LEX_beta, double recurrent_beta, 
     double interarea_beta, bool verbose)
-    : ParserBrain(p, default_beta, 10000.0, 0, // (s)max_weight and seed
+    : ParserBrain(p, default_beta, 10000.0, 42, // (s)max_weight and seed
     generateLexemeDict(), AREAS, RECURRENT_AREAS, 
     {LEX, SUBJ, VERB}, ENGLISH_READOUT_RULES),
     verbose(verbose) {
@@ -453,17 +451,17 @@ std::string EnglishParserBrain::getWord(const std::string& area_name, double min
         return word;
     }
     if (word.empty() && area_name == DET) {
-        // parser.py 548 set(self.area_by_name[area_name].winners)
-        auto& activated = GetArea(area_name).activated;
+        // (s)parser.py 548 set(self.area_by_name[area_name].winners)
+        const std::vector<uint32_t>& activated = GetArea(area_name).activated;
         auto area_k = GetArea(area_name).k;
         double threshold = min_overlap * area_k;
         int nodet_index = DET_SIZE - 1;
         int nodet_assembly_start = nodet_index * area_k;
-        std::unordered_set<int> nodet_assembly; // 553 int
-        for (int i = nodet_assembly_start; i < nodet_assembly_start + area_k; ++i) {
-            nodet_assembly.insert(i);
-        }
-        if (activated.size() > threshold && std::includes(activated.begin(), activated.end(), nodet_assembly.begin(), nodet_assembly.end())) {
+        int nodet_assembly_end = nodet_assembly_start + area_k;
+        std::vector<uint32_t> nodet_assembly;
+        for (int i = nodet_assembly_start; i < nodet_assembly_end; ++i)
+            nodet_assembly.push_back(i);
+        if (NumCommon(activated, nodet_assembly) > threshold) {
             return "<null-det>";
         }
     }
@@ -496,12 +494,13 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     auto to_areas = mapping[area];
     ProjectMap temp1;
     temp1[area] = to_areas;
-    b.Project(temp1, NUM_STEPS, false);
+    b.Project(temp1, 1, false);
     auto this_word = b.getWord(LEX);
     for(auto to_area : to_areas){
         if(to_area==LEX) continue;
         ProjectMap temp2;
         temp2[to_area] = {LEX};
+        b.Project(temp2, 1, false);
         auto other_word = b.getWord(LEX);
         vector<string> temp3 = {this_word, other_word, to_area};
         dependencies.emplace_back(temp3);
@@ -511,10 +510,10 @@ void read_out(std::string area, ProjectMap mapping, EnglishParserBrain &b,
     }
 }
 
-void parse(std::string sentence, float p, int LEX_k, 
-	       int project_rounds, bool verbose, bool debug, int readout_method){
+std::set<std::vector<std::string>> parse(std::string sentence, float p, int LEX_k, int project_rounds,
+	                                     bool verbose, bool debug, int readout_method){
     using namespace std;
-    EnglishParserBrain b(p, LEX_k = LEX_k, verbose = verbose);
+    EnglishParserBrain b(p, 10000, 100, LEX_k, 0.2, 1.0, 0.05, 0.5, verbose);
     unordered_map<string, RuleSet> lexeme_dict = generateLexemeDict();
     vector<string> all_areas = AREAS;
     vector<string> explicit_areas = EXPLICIT_AREAS;
@@ -528,7 +527,9 @@ void parse(std::string sentence, float p, int LEX_k,
             b.activateWord(LEX, word);
             if(verbose){
                 cout << "Activated word: " << word << endl;
-                // cout<<b.GetArea(LEX)
+                auto area = b.GetArea(LEX);
+                // 打印 area 的 activated
+                area.Print("LEX");
             }
             
             for(Rule rule : lexeme.pre_rules){
@@ -538,11 +539,11 @@ void parse(std::string sentence, float p, int LEX_k,
             ProjectMap proj_map = b.getProjectMap();
             for(const auto area : proj_map){
                 if(!proj_map[LEX].count(area.first)){
-                    b.GetArea(area.first).is_fixed = true;
+                    b.GetArea(area.first).fixed_assembly = true;
                     if(verbose) cout << "FIXED assembly bc not LEX->this area in: " << area.first << endl;
                 }
                 else if(area.first!=LEX){
-                    b.GetArea(area.first).is_fixed = false;
+                    b.GetArea(area.first).fixed_assembly = false;
                     b.GetArea(area.first).activated.clear();
                     if(verbose) cout << "ERASED assembly because LEX->this area in " << area.first << endl;
                 }
@@ -563,19 +564,28 @@ void parse(std::string sentence, float p, int LEX_k,
         }
 
         for(auto area : all_areas){
-            b.GetArea(area).is_fixed = false;
+            b.GetArea(area).fixed_assembly = false;
         }
 
         vector<vector<string>> dependencies;
         if(readout_method==1){}
         else if(readout_method==2){
             auto activated_fibers = b.getActivatedFibers();
-            if(verbose){}
-            read_out(VERB, activated_fibers, b, dependencies);
-            cout << "Got dependencies: \n";
-            for (int i = 0; i < dependencies.size();i++){
-                cout << '[' << dependencies[i][0] << ',' << dependencies[i][1] << ',' << dependencies[i][2] << "] ";
+            if(verbose){
+                cout << "Got activated fibers: ";
+                for(auto fiber : activated_fibers){
+                    cout << fiber.first << ": ";
+                    for(auto to_area : fiber.second){
+                        cout << to_area << ", ";
+                    }
+                    cout << endl;
+                } 
             }
+            read_out(VERB, activated_fibers, b, dependencies);
+            
+            set<vector<string>> dependency_set;
+            dependency_set.insert(dependencies.begin(), dependencies.end());
+            return dependency_set;
         }
     }
 }

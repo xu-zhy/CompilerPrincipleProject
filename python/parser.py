@@ -26,8 +26,8 @@ ACC = "ACC"
 DAT = "DAT"
 
 # Fixed area stats for explicit areas
-LEX_SIZE = 20
-DET_SIZE = 2
+LEX_SIZE = 86
+DET_SIZE = 3
 
 # Actions
 DISINHIBIT = "DISINHIBIT"
@@ -209,26 +209,93 @@ def generic_preposition(index):
 	}
 
 LEXEME_DICT = {
-	"the" : generic_determinant(0),
-	"a": generic_determinant(1),
-	"dogs" : generic_noun(2),
-	"cats" : generic_noun(3),
-	"mice" : generic_noun(4),
-	"people" : generic_noun(5),
-	"chase" : generic_trans_verb(6),
-	"love" : generic_trans_verb(7),
-	"bite" : generic_trans_verb(8),
-	"of" : generic_preposition(9),
-	"big": generic_adjective(10),
-	"bad": generic_adjective(11),
-	"run": generic_intrans_verb(12),
-	"fly": generic_intrans_verb(13),
+	"happy": generic_adjective(0),
+	"complex": generic_adjective(1),
+	"calm": generic_adjective(2),
+	"dear": generic_adjective(3),
+	"big": generic_adjective(4),
+	"blue": generic_adjective(5),
+	"old": generic_adjective(6),
+	"little": generic_adjective(7),
+	"friendly": generic_adjective(8),
+	"sunny": generic_adjective(9),
+	"tall": generic_adjective(10),
+	"red": generic_adjective(11),
+	"small": generic_adjective(12),
+	"very": generic_adverb(13),
 	"quickly": generic_adverb(14),
-	"in": generic_preposition(15),
-	"are": generic_copula(16),
-	"man": generic_noun(17),
-	"woman": generic_noun(18),
-	"saw": generic_trans_verb(19),
+	"beautifully": generic_adverb(15),
+	"gently": generic_adverb(16),
+	"skillfully": generic_adverb(17),
+	"happily": generic_adverb(18),
+	"smoothly": generic_adverb(19),
+	"is": generic_copula(20),
+	"was": generic_copula(21),
+	"are": generic_copula(22),
+	"the": generic_determinant(23),
+	"a": generic_determinant(24),
+	"an": generic_determinant(25),
+	"runs": generic_intrans_verb(26),
+	"rises": generic_intrans_verb(27),
+	"jumps": generic_intrans_verb(28),
+	"sway": generic_intrans_verb(29),
+	"sails": generic_intrans_verb(30),
+	"twinkles": generic_intrans_verb(31),
+	"walks": generic_intrans_verb(32),
+	"cat": generic_noun(33),
+	"dog": generic_noun(34),
+	"star": generic_noun(35),
+	"night": generic_noun(36),
+	"man": generic_noun(37),
+	"book": generic_noun(38),
+	"bird": generic_noun(39),
+	"apple": generic_noun(40),
+	"problem": generic_noun(41),
+	"sun": generic_noun(42),
+	"sea": generic_noun(43),
+	"fence": generic_noun(44),
+	"boy": generic_noun(45),
+	"letter": generic_noun(46),
+	"friend": generic_noun(47),
+	"chef": generic_noun(48),
+	"yard": generic_noun(49),
+	"boat": generic_noun(50),
+	"market": generic_noun(51),
+	"weather": generic_noun(52),
+	"breeze": generic_noun(53),
+	"algorithm": generic_noun(54),
+	"kitchen": generic_noun(55),
+	"girl": generic_noun(56),
+	"lake": generic_noun(57),
+	"food": generic_noun(58),
+	"song": generic_noun(59),
+	"children": generic_noun(60),
+	"trees": generic_noun(61),
+	"mouse": generic_noun(62),
+	"idea": generic_noun(63),
+	"teacher": generic_noun(64),
+	"question": generic_noun(65),
+	"student": generic_noun(66),
+	"park": generic_noun(67),
+	"game": generic_noun(68),
+	"sky": generic_noun(69),
+	"in": generic_preposition(70),
+	"outside": generic_preposition(71),
+	"over": generic_preposition(72),
+	"around": generic_preposition(73),
+	"across": generic_preposition(74),
+	"at": generic_preposition(75),
+	"to": generic_preposition(76),
+	"reads": generic_trans_verb(77),
+	"writes": generic_trans_verb(78),
+	"cooks": generic_trans_verb(79),
+	"sings": generic_trans_verb(80),
+	"solves": generic_trans_verb(81),
+	"saw": generic_trans_verb(82),
+	"chases": generic_trans_verb(83),
+	"play": generic_trans_verb(84),
+	"has": generic_trans_verb(85),
+	"asked": generic_trans_verb(86),
 }
 
 def generic_russian_verb(index):
@@ -662,8 +729,8 @@ class ReadoutMethod(Enum):
 
 
 
-def parse(sentence="the man saw a woman", language="English", p=0.1, LEX_k=20, 
-	project_rounds=20, verbose=True, debug=False, readout_method=ReadoutMethod.FIBER_READOUT):
+def parse(sentence="the apple is red", language="English", p=0.1, LEX_k=20, 
+	project_rounds=20, verbose=False, debug=False, readout_method=ReadoutMethod.FIBER_READOUT):
 
 	if language == "English":
 		b = EnglishParserBrain(p, LEX_k=LEX_k, verbose=verbose)
@@ -696,6 +763,10 @@ def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug,
 		b.activateWord(LEX, word)
 		if verbose:
 			print("Activated word: " + word)
+			print(b.area_by_name[LEX].n)
+			print(b.area_by_name[LEX].k)
+			print(b.area_by_name[LEX].fixed_assembly)
+			print(b.area_by_name[LEX].explicit)
 			print(b.area_by_name[LEX].winners)
 
 		for rule in lexeme["PRE_RULES"]:
@@ -734,9 +805,12 @@ def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug,
 		#		print("Post proj stats for " + area_name)
 		#		print("w=" + str(b.area_by_name[area_name].w))
 		#		print("num_first_winners=" + str(b.area_by_name[area_name].num_first_winners))
-
+		# proj_map = b.getProjectMap()
+		# print("BEFORE-POSTRULE: ", proj_map)
 		for rule in lexeme["POST_RULES"]:
 			b.applyRule(rule)
+		# proj_map = b.getProjectMap()
+		# print("POSTRULE: ", proj_map)
 
 		if debug:
 			print("Starting debugger after the word " + word)
@@ -752,9 +826,9 @@ def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug,
 	dependencies = []
 	def read_out(area, mapping):
 		to_areas = mapping[area]
+		
 		b.project({}, {area: to_areas})
 		this_word = b.getWord(LEX)
-
 		for to_area in to_areas:
 			if to_area == LEX:
 				continue
@@ -795,7 +869,7 @@ def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug,
 			print(activated_fibers)
 
 		read_out(VERB, activated_fibers)
-		print("Got dependencies: ")
+		# print("Got dependencies: ")
 		print(dependencies)
 
 		# root = pptree.Node(VERB)
@@ -805,7 +879,30 @@ def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug,
 
 
 def main():
-    parse()
+    sentences = [
+		# "the apple is red",
+		# "the cat is very happy",
+		# "a dog runs quickly",
+		"a star twinkles in the sky",
+		# "a man reads a book",
+		# "the bird sings a song",
+		# "the children play a game",
+		# "the cat chases the mouse",
+		# "an algorithm solves a complex problem",
+		# "the teacher has an idea",
+		# "a student asked a question",
+		# "tall trees sway gently in the breeze",
+		# "the sun rises over the calm sea",
+		# "the cat quickly jumps over the small fence",
+		# "a boy writes a letter to a dear friend",
+		# "the chef cooks food in the kitchen",
+		# "the dog happily runs around the big yard",
+		# "the boat sails smoothly across the blue lake",
+		# "the old man walks in the park",
+		# "the girl saw a cat"
+	]
+    for sentence in sentences:
+        parse(sentence=sentence)
 
 if __name__ == "__main__":
     main()

@@ -22,13 +22,15 @@ struct Synapse {
 
 struct Area {
   Area(uint32_t index, uint32_t n, uint32_t k) : index(index), n(n), k(k) {}
+  void Print(std::string name);
 
-  const uint32_t index;             // 脑区索引
-  const uint32_t n;                 // 脑区的总神经元数量
-  const uint32_t k;                 // 激活的最大神经元数量，n/k 为脑区的 assembly 数量
-  uint32_t support = 0;             // 当前激活的神经元数量
-  bool is_fixed = false;            // 是否具有固定数量的激活神经元
-  std::vector<uint32_t> activated;  // 激活的神经元索引
+  const uint32_t index;               // 脑区索引
+  const uint32_t n;                   // 脑区的总神经元数量
+  const uint32_t k;                   // 激活的最大神经元数量，n/k 为脑区的 assembly 数量
+  uint32_t support = 0;               // 当前激活的神经元数量
+  bool explicit_ = false;             // 是否具有固定数量的激活神经元
+  bool fixed_assembly = false;        // ??
+  std::vector<uint32_t> activated;    // 激活的神经元索引
 };
 
 struct Fiber {

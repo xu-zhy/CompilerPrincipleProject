@@ -275,8 +275,8 @@ class Brain:
     # areas_by_stim: {"stim1":["A"], "stim2":["C","A"]}
     # dst_areas_by_src_area: {"A":["A","B"],"C":["C","A"]}
     
-    stim_in = collections.defaultdict(list)
-    area_in = collections.defaultdict(list)
+    stim_in = collections.defaultdict(list)   # 刺激输入
+    area_in = collections.defaultdict(list)   # 区域输入
 
     for stim, areas in areas_by_stim.items():
       if stim not in self.stimulus_size_by_name:
@@ -294,7 +294,7 @@ class Brain:
         area_in[to_area_name].append(from_area_name)
 
     to_update_area_names = stim_in.keys() | area_in.keys()
-
+    # print(f"to_update_area_names: {to_update_area_names}")
     for area_name in to_update_area_names:
       area = self.area_by_name[area_name]
       num_first_winners = self.project_into(
@@ -339,6 +339,7 @@ class Brain:
 
     else:
       
+      # 计算 SI - previous_winners_inputs
       prev_winner_inputs = np.zeros(target_area.w, dtype=np.float32)
       for stim in from_stimuli:
         stim_inputs = self.connectomes_by_stimulus[stim][target_area_name]
@@ -376,6 +377,7 @@ class Brain:
           ###   normal_approx_mean += effective_k * local_p
           ###   normal_approx_var += ((effective_k * local_p * (1-p)) ** 2)
 
+        # total_k = total_activated in c++
         total_k = sum(input_size_by_from_area_index)
         if verbose >= 2:
           print(f"{total_k=} and {input_size_by_from_area_index=}")
