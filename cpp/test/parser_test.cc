@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "../src/parser.h"
 #include "dependency.h"
 
 #include <stdio.h>

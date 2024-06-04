@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(my_project)
+project(correctness_test)
 
 # GoogleTest requires at least C++17
 set(CMAKE_CXX_STANDARD 17)
@@ -19,13 +19,13 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
   parser_test
   parser_test.cc
-  brain.cc
-  brain.h
-  parser.cc
-  parser.h
+  ../src/brain.cc
+  ../src/brain.h
+  ../src/parser.cc
+  ../src/parser.h
   dependency.h
-  parser_util.h
-  lexemeDict.h
+  ../src/parser_util.h
+  ../src/lexemeDict.h
 )
 target_link_libraries(
   parser_test
